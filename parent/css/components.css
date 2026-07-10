@@ -1,0 +1,69 @@
+.rating-stars {
+  color: var(--warning-color);
+  font-size: 18px;
+}
+
+.badge-teacher {
+  background-color: #e2e8f0;
+  color: #334155;
+  font-weight: 600;
+}
+
+.general-note-item {
+  background-color: #fffdf5;
+  border-right: 5px solid #d97706;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.general-note-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.general-note-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #451a03;
+  line-height: 1.6;
+}
+
+.tasmiah-note-box {
+  background-color: #f1f5f9;
+  padding: 10px;
+  border-right: 4px solid #94a3b8;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.note-important {
+  background-color: #fff1f2;
+  border-right-color: #f43f5e;
+  color: #9f1239;
+}
+
+.performance-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

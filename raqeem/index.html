@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام إدارة حلقة التسميع</title>
+    <!-- تضمين مكتبات التصميم والأيقونات والخطوط القديمة المرتبة -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/lock-screen.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/tables-tabs.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+  </head>
+  <body>
+    <!-- حاوية التنبيهات العصرية -->
+    <div id="appToastContainer"></div>
+
+    <!-- شاشة القفل الآمنة -->
+    <div id="lockScreen">
+      <div class="pin-box">
+        <i class="fas fa-lock fa-4x mb-4 text-warning"></i>
+        <h3 class="mb-4 fw-bold">حلقة تحفيظ القرآن الكريم</h3>
+        <p class="mb-3 text-white-50">الرجاء إدخال رمز PIN لفتح التطبيق</p>
+        <input
+          type="password"
+          id="pinInputField"
+          class="form-control pin-input"
+          maxlength="4"
+          placeholder="••••"
+          autocomplete="off"
+        />
+        <button
+          class="btn btn-warning w-100 fw-bold py-2 text-dark fs-5"
+          onclick="verifyPin()"
+        >
+          دخول <i class="fas fa-sign-in-alt me-2"></i>
+        </button>
+        <div id="pinErrorMsg" class="text-danger mt-3 fw-bold d-none">
+          الرمز غير صحيح، حاول مجدداً!
+        </div>
+      </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay d-none">
+      <div class="text-center">
+        <div
+          class="spinner-border text-primary mb-3"
+          style="width: 3rem; height: 3rem"
+          role="status"
+        ></div>
+        <div class="fw-bold text-dark">جاري تحميل ومزامنة البيانات...</div>
+      </div>
+    </div>
+
+    <div id="appMainContent" class="d-none">
+      <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+          <a class="navbar-brand fw-bold" href="#"
+            ><i class="fas fa-quran text-warning me-2"></i> لوحة تحكم الحلقة</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  href="#"
+                  onclick="switchTab('dashboard', this)"
+                  ><i class="fas fa-chart-line me-1"></i> الرئيسية</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  href="#"
+                  onclick="switchTab('newSessionTab', this)"
+                  ><i class="fas fa-microphone-alt me-1"></i> تسجيل تسميع
+                  جديد</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  href="#"
+                  onclick="switchTab('studentsTab', this)"
+                  ><i class="fas fa-user-graduate me-1"></i> الطلاب</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  href="#"
+                  onclick="switchTab('historyTab', this)"
+                  ><i class="fas fa-history me-1"></i> سجل التسميع</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link text-warning fw-bold"
+                  href="#"
+                  onclick="lockApp()"
+                  ><i class="fas fa-sign-out-alt me-1"></i> قفل</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <div class="container">
+        <div id="dashboard" class="tab-content">
+          <div class="row text-center">
+            <div class="col-md-4 mb-3">
+              <div
+                class="app-card bg-white border-start border-primary border-5 dashboard-stat-card"
+              >
+                <h5 class="text-muted">
+                  <i class="fas fa-users mb-2"></i> إجمالي الطلاب
+                </h5>
+                <h2 id="statTotalStudents" class="fw-bold text-primary">0</h2>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="app-card bg-white border-start border-success border-5 dashboard-stat-card"
+              >
+                <h5 class="text-muted">
+                  <i class="fas fa-scroll text-success mb-2"></i> إجمالي
+                  التسميعات
+                </h5>
+                <h2 id="statTotalSessions" class="fw-bold text-success">0</h2>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div
+                class="app-card bg-white border-start border-warning border-5 dashboard-stat-card"
+              >
+                <h5 class="text-muted">
+                  <i class="fas fa-star text-warning mb-2"></i> متوسط التقييم
+                  العام
+                </h5>
+                <h2 id="statAvgRating" class="fw-bold text-warning">0 / 3</h2>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h5 class="fw-bold mb-3 text-primary">
+              <i class="fas fa-clock me-2"></i> آخر 5 عمليات تسميع مسجلة بالحلقة
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mobile-cards-table">
+                <thead>
+                  <tr>
+                    <th>الطالب</th>
+                    <th>الأستاذ</th>
+                    <th>السورة</th>
+                    <th>الآيات</th>
+                    <th>التقييم</th>
+                    <th>التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody id="recentSessionsTableBody">
+                  <tr class="no-data-row">
+                    <td colspan="6" class="text-center text-muted">
+                      جاري سحب البيانات...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="newSessionTab" class="tab-content d-none">
+          <div class="row justify-content-center">
+            <div class="col-lg-8">
+              <div class="app-card">
+                <h4 class="fw-bold text-primary mb-4">
+                  <i class="fas fa-plus-circle me-2"></i> نموذج تسجيل تسميع
+                  مباشر
+                </h4>
+                <form id="sessionForm" onsubmit="saveSession(event)">
+                  <div class="mb-3">
+                    <label class="form-label">الأستاذ</label>
+                    <select class="form-select" id="sessTeacher" required>
+                      <option value="">اختر اسم الأستاذ...</option>
+                      <option value="علي محمد زيتون">علي محمد زيتون</option>
+                      <option value="محمد راكان زيتون">محمد راكان زيتون</option>
+                      <option value="محمد هيثم زيتون">محمد هيثم زيتون</option>
+                      <option value="محمد هيثم زيتون">عبد الله الشبعاني</option>
+                    </select>
+                  </div>
+
+                  <!-- حقل الطالب القديم الذكي مع ميزة البحث الفوري من الكيبورد -->
+                  <div class="mb-3 position-relative">
+                    <label class="form-label"
+                      >اسم الطالب (ابحث واكتب هنا)</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="sessStudentInput"
+                      list="studentsDatalist"
+                      placeholder="اكتب اسم الطالب للبحث والاختيار السريع..."
+                      required
+                      onchange="handleStudentSelect()"
+                    />
+                    <datalist id="studentsDatalist">
+                      <!-- يُعبأ برمجياً -->
+                    </datalist>
+                    <input type="hidden" id="sessStudentHiddenId" />
+                    <input type="hidden" id="sessStudentHiddenName" />
+                  </div>
+
+                  <div class="row">
+                    <!-- حقل السورة القديم الذكي مع ميزة البحث وعدد الآيات -->
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">السورة</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="sessSurah"
+                        list="surahDatalist"
+                        placeholder="اكتب اسم السورة..."
+                        required
+                        oninput="onSurahChange()"
+                      />
+                      <datalist id="surahDatalist">
+                        <!-- سيتم ملؤها بقائمة السور الـ 114 تلقائياً -->
+                      </datalist>
+                      <span id="surahInfoLabel" class="surah-hint"></span>
+                    </div>
+
+                    <!-- خيار السورة كاملة -->
+                    <div
+                      class="col-md-6 mb-3 d-flex align-items-center mt-md-4"
+                    >
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="fullSurahCheck"
+                          onchange="toggleFullSurah(this)"
+                        />
+                        <label
+                          class="form-check-label fw-bold text-success"
+                          for="fullSurahCheck"
+                          >تسميع السورة كاملة ✨</label
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <label class="form-label">من آية</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="sessFrom"
+                        required
+                        min="1"
+                      />
+                    </div>
+                    <div class="col-6 mb-3">
+                      <label class="form-label">إلى آية</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="sessTo"
+                        required
+                        min="1"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">التقييم الرقمي</label>
+                      <select class="form-select" id="sessRating" required>
+                        <option value="3">3 - ممتاز / جيد جداً</option>
+                        <option value="2">2 - جيد / بحاجة لتمكين</option>
+                        <option value="1">1 - ضعيف / إعادة تسميع</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">عدد الأخطاء المرتكبة</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="sessErrors"
+                        value="0"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">ملاحظات وتوجيهات الأستاذ</label>
+                    <textarea
+                      class="form-control"
+                      id="sessNotes"
+                      rows="2"
+                      placeholder="أضف أي ملاحظات حول الحفظ أو الأحكام أو التجويد..."
+                    ></textarea>
+                  </div>
+                  <div class="card my-4 border-success bg-light">
+                    <div class="card-header bg-success text-white fw-bold py-2">
+                      <i class="fas fa-book-open me-2"></i> تحديد الواجب
+                      والتحضير القادم (اختياري)
+                    </div>
+                    <div class="card-body py-3">
+                      <div class="row g-2">
+                        <div class="col-md-6">
+                          <label class="form-label small fw-bold mb-1"
+                            >السورة المطلوبة للتحضير:</label
+                          >
+                          <input
+                            type="text"
+                            id="assignSurah"
+                            class="form-control form-control-sm"
+                            placeholder="مثال: المسد"
+                          />
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small fw-bold mb-1"
+                            >من آية:</label
+                          >
+                          <input
+                            type="number"
+                            id="assignFrom"
+                            class="form-control form-control-sm"
+                            placeholder="1"
+                          />
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small fw-bold mb-1"
+                            >إلى آية:</label
+                          >
+                          <input
+                            type="number"
+                            id="assignTo"
+                            class="form-control form-control-sm"
+                            placeholder="آخرها"
+                          />
+                        </div>
+                      </div>
+                      <div class="text-end mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-success fw-bold"
+                          onclick="saveStudentAssignment(this)"
+                        >
+                          <i class="fas fa-plus-circle me-1"></i> تثبيت الواجب
+                          للطالب
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    class="btn btn-success w-100 py-2 fs-5 mt-2"
+                  >
+                    حفظ التسميع
+                    <i class="fas fa-cloud-upload-alt ms-1"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. تبويب إدارة الطلاب -->
+        <div id="studentsTab" class="tab-content d-none">
+          <div class="row mb-3">
+            <div class="col-md-7 mb-2">
+              <div class="input-group">
+                <span class="input-group-text bg-white"
+                  ><i class="fas fa-search text-muted"></i
+                ></span>
+                <input
+                  type="text"
+                  id="studentSearchInput"
+                  class="form-control"
+                  placeholder="ابحث عن طالب بالاسم أو رقم الهاتف..."
+                  oninput="filterStudents()"
+                />
+              </div>
+            </div>
+            <div class="col-md-5 mb-2 text-md-end">
+              <button
+                class="btn btn-primary w-100 fw-bold"
+                data-bs-toggle="modal"
+                data-bs-target="#addStudentModal"
+              >
+                <i class="fas fa-user-plus me-1"></i> إضافة طالب جديد للحلقة
+              </button>
+            </div>
+          </div>
+          <div class="row" id="studentsContainer"></div>
+        </div>
+
+        <!-- 4. تبويب السجل التاريخي الكامل -->
+        <div id="historyTab" class="tab-content d-none">
+          <div class="app-card">
+            <div
+              class="d-flex justify-content-between align-items-center mb-4 flex-wrap"
+            >
+              <h4 class="fw-bold text-primary mb-2">
+                <i class="fas fa-folder-open me-2"></i> أرشيف جميع التسميعات
+                الموثقة بالحلقة
+              </h4>
+              <div class="col-md-4 col-12">
+                <input
+                  type="text"
+                  id="historySearchInput"
+                  class="form-control"
+                  placeholder="تصفية السجل باسم الطالب، الأستاذ أو السورة..."
+                  oninput="filterHistoryTable()"
+                />
+              </div>
+            </div>
+            <div class="table-responsive table-container">
+              <table
+                class="table table-hover align-middle mb-0 mobile-cards-table"
+                id="historicalSessionsTable"
+              >
+                <thead>
+                  <tr>
+                    <th>المعرف</th>
+                    <th>اسم الطالب</th>
+                    <th>الأستاذ</th>
+                    <th>السورة والآيات</th>
+                    <th>التقييم</th>
+                    <th>الأخطاء</th>
+                    <th>الملاحظات</th>
+                    <th>التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال إضافة طالب -->
+    <div
+      class="modal fade"
+      id="addStudentModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold">
+              <i class="fas fa-user-plus me-2"></i> إضافة طالب جديد
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form id="studentForm" onsubmit="saveStudent(event)">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">اسم الطالب الكامل</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="stName"
+                  placeholder="اسم الطالب الثلاثي"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">العمر</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="stAge"
+                  placeholder="مثال: 12"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">رقم هاتف ولي الأمر</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="stPhone"
+                  placeholder="مثال: 0933xxxxxx"
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-modal="hide"
+              >
+                إلغاء
+              </button>
+              <button type="submit" class="btn btn-primary">حفظ الطالب</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال الملف الشامل للطالب -->
+    <div
+      class="modal fade"
+      id="studentProfileModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px">
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title fw-bold">
+              <i class="fas fa-id-card-alt text-warning me-2"></i>
+              الملف الشامل للطالب
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- معلومات الطالب -->
+            <div class="app-card bg-light border-0 mb-3 p-3">
+              <h4 class="fw-bold text-dark mb-2" id="profName">-</h4>
+              <p class="mb-1 text-muted">
+                <i class="fas fa-birthday-cake"></i> العمر:
+                <span id="profAge">-</span> |
+                <i class="fas fa-phone ms-3"></i> الهاتف:
+                <span id="profPhone">-</span>
+              </p>
+              <p class="mb-0 text-primary fw-bold">
+                إجمالي التسميعات:
+                <span id="profTotalCount" class="badge bg-primary">0</span>
+              </p>
+            </div>
+
+            <!-- التبويبات -->
+            <ul
+              class="nav nav-tabs nav-fill mb-3"
+              id="profileTabs"
+              role="tablist"
+            >
+              <li class="nav-item">
+                <button
+                  class="nav-link active"
+                  data-bs-target="#tab-history"
+                  data-bs-toggle="tab"
+                  type="button"
+                >
+                  سجل التسميع
+                </button>
+              </li>
+              <li class="nav-item">
+                <button
+                  class="nav-link"
+                  data-bs-target="#tab-tasks"
+                  data-bs-toggle="tab"
+                  type="button"
+                >
+                  الواجبات والتحضير
+                </button>
+              </li>
+              <li class="nav-item">
+                <button
+                  class="nav-link"
+                  data-bs-target="#tab-notes"
+                  data-bs-toggle="tab"
+                  type="button"
+                >
+                  السجل التربوي
+                </button>
+              </li>
+            </ul>
+
+            <!-- محتوى التبويبات -->
+            <div class="tab-content profile-tab-content" id="profileTabContent">
+              <!-- تبويب 1: سجل التسميع -->
+              <div class="tab-pane fade show active" id="tab-history">
+                <div
+                  class="table-responsive table-wrapper mobile-cards-table-wrapper border rounded-3"
+                  style="max-height: 320px; overflow-y: auto"
+                >
+                  <table
+                    class="table table-hover align-middle mb-0 mobile-cards-table"
+                  >
+                    <thead class="sticky-top bg-light">
+                      <tr class="text-secondary" style="font-size: 0.85rem">
+                        <th>الأستاذ</th>
+                        <th>السورة</th>
+                        <th>الآيات</th>
+                        <th>التقييم</th>
+                        <th>الأخطاء</th>
+                        <th>الملاحظات</th>
+                      </tr>
+                    </thead>
+                    <tbody id="studentProfileTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- تبويب 2: الواجبات -->
+              <div class="tab-pane fade" id="tab-tasks">
+                <div
+                  class="table-responsive table-wrapper mobile-cards-table-wrapper border rounded-3 mb-2"
+                  style="max-height: 260px; overflow-y: auto"
+                >
+                  <table
+                    class="table table-hover align-middle mb-0 mobile-cards-table"
+                  >
+                    <thead class="sticky-top bg-light">
+                      <tr class="text-secondary" style="font-size: 0.85rem">
+                        <th>السورة</th>
+                        <th>من آية</th>
+                        <th>إلى آية</th>
+                        <th>الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody id="studentProfileAssignments"></tbody>
+                  </table>
+                </div>
+
+                <div class="card border-success mt-4">
+                  <div class="card-header bg-success text-white fw-bold">
+                    تحديد الواجب القادم
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <input
+                          type="text"
+                          id="profileAssignSurah"
+                          class="form-control"
+                          placeholder="اسم السورة"
+                        />
+                      </div>
+                      <div class="col-md-4">
+                        <input
+                          type="number"
+                          id="profileAssignFrom"
+                          class="form-control"
+                          placeholder="من"
+                        />
+                      </div>
+                      <div class="col-md-4">
+                        <input
+                          type="number"
+                          id="profileAssignTo"
+                          class="form-control"
+                          placeholder="إلى"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      class="btn btn-outline-success w-100 mt-3"
+                      onclick="saveStudentAssignment(this)"
+                    >
+                      <i class="fas fa-save me-1"></i> حفظ الواجب
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. تبويب الملاحظات -->
+              <div class="tab-pane fade" id="tab-notes">
+                <form
+                  id="generalNoteForm"
+                  onsubmit="saveGeneralNote(event)"
+                  class="mb-3"
+                >
+                  <input type="hidden" id="noteStudentId" />
+                  <input type="hidden" id="noteStudentName" />
+                  <div class="row g-2">
+                    <div class="col-md-4">
+                      <input
+                        type="text"
+                        id="noteTeacherInput"
+                        class="form-control"
+                        placeholder="اسم الأستاذ"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-8">
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          id="noteTextInput"
+                          class="form-control"
+                          placeholder="الملاحظة..."
+                          required
+                        /><button class="btn btn-dark" type="submit">
+                          حفظ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+                <div
+                  id="teacherNotesArchive"
+                  style="max-height: 200px; overflow-y: auto"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ملفات JS مقسّمة حسب الوحدة الوظيفية — يجب الحفاظ على هذا الترتيب -->
+    <!-- core: أساسيات مشتركة، لازم تحمّل أول -->
+    <script src="js/core/config.js"></script>
+    <script src="js/core/ui-helpers.js"></script>
+    <script src="js/core/api.js"></script>
+    <!-- features: كل وحدة وظيفية بمجلدها -->
+    <script src="js/features/auth/auth.js"></script>
+    <script src="js/features/students/students.js"></script>
+    <script src="js/features/sessions/sessions.js"></script>
+    <script src="js/features/history/history.js"></script>
+    <script src="js/features/notes/notes.js"></script>
+    <script src="js/features/assignments/assignments.js"></script>
+    <!-- نقطة انطلاق التطبيق، لازم تحمّل أخيراً -->
+    <script src="js/core/main.js"></script>
+  </body>
+</html>

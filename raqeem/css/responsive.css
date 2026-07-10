@@ -1,0 +1,138 @@
+/* ==============================================
+   responsive.css — تحسينات الموبايل
+   ================================================= */
+
+@media (max-width: 767.98px) {
+  body {
+    font-size: 15px;
+  }
+  .app-card {
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* شاشة القفل */
+  .pin-box {
+    padding: 28px 20px;
+    border-radius: 16px;
+    width: 92%;
+  }
+  .pin-input {
+    letter-spacing: 10px;
+    font-size: 20px;
+  }
+
+  /* الناف بار */
+  .navbar-brand {
+    font-size: 1.05rem;
+  }
+  .navbar-nav .nav-link {
+    padding: 10px 12px !important;
+    text-align: center;
+  }
+
+  /* بطاقات الإحصائيات بالرئيسية */
+  .dashboard-stat-card h2 {
+    font-size: 1.6rem;
+  }
+  .dashboard-stat-card h5 {
+    font-size: 0.85rem;
+  }
+
+  /* تبويبات ملف الطالب - تمرير أفقي بدل الانضغاط */
+  #profileTabs.nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #profileTabs.nav-tabs .nav-item {
+    flex-shrink: 0;
+  }
+  #profileTabs.nav-tabs .nav-link {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* المودالات تاخد المساحة صح على الموبايل */
+  .modal-dialog {
+    margin: 10px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-header,
+  .modal-footer {
+    padding: 12px 16px;
+  }
+
+  /* تحويل الجداول لبطاقات مرتبة بدل التمرير الأفقي المزعج */
+  .mobile-cards-table thead {
+    display: none;
+  }
+  .mobile-cards-table,
+  .mobile-cards-table tbody,
+  .mobile-cards-table tr,
+  .mobile-cards-table td {
+    display: block;
+    width: 100%;
+  }
+  .mobile-cards-table {
+    border: none;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .mobile-cards-table tr {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+  }
+  .mobile-cards-table tr:last-child {
+    margin-bottom: 0;
+  }
+  .mobile-cards-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+    padding: 7px 2px !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+  .mobile-cards-table td:last-child {
+    border-bottom: none !important;
+  }
+  .mobile-cards-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .mobile-cards-table tr.no-data-row {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  .mobile-cards-table tr.no-data-row td {
+    display: table-cell;
+  }
+  /* داخل مودال الملف الشخصي الجدول محصور بارتفاع، خليه يمرر عمودي طبيعي */
+  .table-wrapper.mobile-cards-table-wrapper {
+    max-height: none !important;
+  }
+}
+
+/* ============================================= */
+/* نظام التنبيهات (Toast) العصري - نجاح / فشل     */
+/* ============================================= */

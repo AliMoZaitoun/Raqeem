@@ -1,0 +1,12 @@
+:root {
+  --primary-color: #2c3e50;
+  --accent-color: #228b22;
+  --warning-color: #ffd700;
+  --bg-color: #f8fafc;
+}
+
+body {
+  font-family: "Cairo", sans-serif;
+  background-color: var(--bg-color);
+  color: #334155;
+}
