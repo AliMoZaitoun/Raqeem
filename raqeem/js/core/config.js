@@ -125,3 +125,6 @@ const quranSurahs = {
 };
 
 let appData = { students: [], sessions: [] };
+
+// قائمة الأجزاء الثلاثين، تُستخدم بخيار "اختبار جزء" بالواجبات
+const juzList = Array.from({ length: 30 }, (_, i) => i + 1);

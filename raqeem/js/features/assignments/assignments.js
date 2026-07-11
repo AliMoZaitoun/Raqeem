@@ -1,80 +1,191 @@
 // ==============================================
-// assignments.js — الواجبات
+// assignments.js — الواجبات (تسميع سور متعددة أو اختبار جزء)
 // ==============================================
 
-function saveStudentAssignment(btnEl) {
-  let studentId, studentName, surah, fromVerse, toVerse;
+// قائمة انتظار السور لكل نموذج إضافة واجب على حدة (النموذج الأول بصفحة "تسميع جديد"،
+// والثاني بتبويب الواجبات بالملف الشخصي)، مفتاحها هو الـ context
+let assignmentQueues = { assign: [], profileAssign: [] };
 
-  if (document.getElementById("sessStudentHiddenId").value) {
+function renderAssignmentQueue(ctx) {
+  renderQueueList(
+    assignmentQueues[ctx],
+    document.getElementById(`${ctx}QueueList`),
+    `removeFromAssignmentQueue_${ctx}`,
+  );
+}
+// دوال حذف منفصلة بالاسم لكل context (مطلوبة لأن onclick بالـ HTML بستدعي بالاسم مباشرة)
+function removeFromAssignmentQueue_assign(index) {
+  assignmentQueues.assign.splice(index, 1);
+  renderAssignmentQueue("assign");
+}
+function removeFromAssignmentQueue_profileAssign(index) {
+  assignmentQueues.profileAssign.splice(index, 1);
+  renderAssignmentQueue("profileAssign");
+}
+
+// إضافة سورة لقائمة انتظار الواجب (وضع "تسميع")، موحّدة لأي نموذج عبر الـ ctx
+function addSurahToAssignmentQueue(ctx) {
+  const surah = document.getElementById(`${ctx}Surah`).value.trim();
+  const fromVerse = document.getElementById(`${ctx}From`).value.trim();
+  const toVerse = document.getElementById(`${ctx}To`).value.trim();
+
+  if (!isValidSurah(surah)) {
+    showToast("الرجاء اختيار اسم سورة صحيح من القائمة أولاً!", "error");
+    return;
+  }
+
+  assignmentQueues[ctx].push({
+    surah,
+    from_verse: fromVerse || "1",
+    to_verse: toVerse || String(quranSurahs[surah]),
+  });
+  renderAssignmentQueue(ctx);
+
+  document.getElementById(`${ctx}Surah`).value = "";
+  document.getElementById(`${ctx}From`).value = "";
+  document.getElementById(`${ctx}To`).value = "";
+  showToast(`تمت إضافة سورة ${surah} لواجب التسميع`, "success");
+}
+
+// تبديل عرض وضع "تسميع سورة/سور" مقابل وضع "اختبار جزء"، موحّد لأي نموذج عبر الـ ctx
+function toggleAssignmentType(ctx) {
+  const isTest = document.getElementById(`${ctx}TypeTest`).checked;
+  document.getElementById(`${ctx}RecitationFields`).classList.toggle(
+    "d-none",
+    isTest,
+  );
+  document.getElementById(`${ctx}TestFields`).classList.toggle(
+    "d-none",
+    !isTest,
+  );
+  if (isTest) {
+    populateJuzSelect(document.getElementById(`${ctx}Juz`));
+  }
+}
+
+// الدالة الموحّدة الوحيدة لحفظ الواجب، تُستدعى من مكانين بنفس الطريقة تماماً
+// btnEl: الزر اللي انضغط (لعرض حالة التحميل عليه)
+// ctx: "assign" (نموذج تسميع جديد) أو "profileAssign" (تبويب الواجبات بالبروفايل)
+async function saveStudentAssignment(btnEl, ctx) {
+  let studentId, studentName;
+
+  if (ctx === "assign") {
     studentId = document.getElementById("sessStudentHiddenId").value;
     studentName = document.getElementById("sessStudentHiddenName").value;
-    surah = document.getElementById("assignSurah").value.trim();
-    fromVerse = document.getElementById("assignFrom").value.trim();
-    toVerse = document.getElementById("assignTo").value.trim();
   } else {
     studentId = document.getElementById("noteStudentId").value;
     studentName = document.getElementById("profName").innerText;
-    surah = document.getElementById("profileAssignSurah").value.trim();
-    fromVerse = document.getElementById("profileAssignFrom").value.trim();
-    toVerse = document.getElementById("profileAssignTo").value.trim();
   }
 
   if (!studentId || !studentName) {
     showToast("الرجاء اختيار طالب صحيح أولاً!", "error");
     return;
   }
-  if (!surah) {
-    showToast("يرجى كتابة اسم السورة للواجب.", "error");
-    return;
+
+  const isTest = document.getElementById(`${ctx}TypeTest`).checked;
+  let itemsToSave = [];
+
+  if (isTest) {
+    const juz = document.getElementById(`${ctx}Juz`).value;
+    if (!juz) {
+      showToast("الرجاء اختيار رقم الجزء المطلوب اختباره!", "error");
+      return;
+    }
+    itemsToSave = [
+      {
+        surah: `اختبار جزء ${juz}`,
+        from_verse: "",
+        to_verse: "",
+      },
+    ];
+  } else {
+    itemsToSave = [...assignmentQueues[ctx]];
+    const currentSurah = document.getElementById(`${ctx}Surah`).value.trim();
+    if (currentSurah) {
+      if (!isValidSurah(currentSurah)) {
+        showToast("الرجاء اختيار اسم سورة صحيح من القائمة!", "error");
+        return;
+      }
+      itemsToSave.push({
+        surah: currentSurah,
+        from_verse:
+          document.getElementById(`${ctx}From`).value.trim() || "1",
+        to_verse:
+          document.getElementById(`${ctx}To`).value.trim() ||
+          String(quranSurahs[currentSurah]),
+      });
+    }
+    if (itemsToSave.length === 0) {
+      showToast("الرجاء إضافة سورة واحدة على الأقل للواجب!", "error");
+      return;
+    }
   }
 
-  const payload = {
-    action: "add_assignment",
-    student_id: Number(studentId),
-    student_name: studentName,
-    surah: surah,
-    from_verse: fromVerse || "1",
-    to_verse: toVerse || "آخرها",
-  };
+  setBtnLoading(btnEl, true, `جاري حفظ 0 من ${itemsToSave.length}...`);
 
-  setBtnLoading(btnEl, true, "جاري الحفظ...");
+  let successCount = 0;
+  const failedItems = [];
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "cors",
-    body: JSON.stringify(payload),
-  })
-    .then((res) => res.json())
-    .then((data) => {
+  for (let i = 0; i < itemsToSave.length; i++) {
+    const item = itemsToSave[i];
+    setBtnLoading(btnEl, true, `جاري حفظ ${i + 1} من ${itemsToSave.length}...`);
+
+    const payload = {
+      action: "add_assignment",
+      student_id: Number(studentId),
+      student_name: studentName,
+      surah: item.surah,
+      from_verse: item.from_verse,
+      to_verse: item.to_verse,
+    };
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
       if (data.status === "success") {
-        showToast("تم تسجيل الواجب بنجاح!", "success");
-
-        if (document.getElementById("assignSurah"))
-          document.getElementById("assignSurah").value = "";
-        if (document.getElementById("profileAssignSurah"))
-          document.getElementById("profileAssignSurah").value = "";
-
-        fetchDataFromSheets();
+        successCount++;
       } else {
-        showToast(
-          "تعذر تسجيل الواجب: " +
-            (data.message || "خطأ غير معروف من السيرفر."),
-          "error",
-        );
+        failedItems.push(item.surah);
       }
-    })
-    .catch((err) => {
+    } catch (err) {
       console.error(err);
-      showToast(
-        "فشل الاتصال. جرب مرة ثانية أو تأكد من نشر الـ Script.",
-        "error",
-      );
-    })
-    .finally(() => {
-      setBtnLoading(btnEl, false);
-    });
-}
+      failedItems.push(item.surah);
+    }
+  }
 
+  setBtnLoading(btnEl, false);
+
+  if (failedItems.length === 0) {
+    showToast(
+      successCount > 1
+        ? `تم تسجيل ${successCount} واجبات بنجاح!`
+        : "تم تسجيل الواجب بنجاح!",
+      "success",
+    );
+    // تصفير الحقول والقائمة بعد نجاح كامل
+    assignmentQueues[ctx] = [];
+    renderAssignmentQueue(ctx);
+    if (document.getElementById(`${ctx}Surah`))
+      document.getElementById(`${ctx}Surah`).value = "";
+    if (document.getElementById(`${ctx}From`))
+      document.getElementById(`${ctx}From`).value = "";
+    if (document.getElementById(`${ctx}To`))
+      document.getElementById(`${ctx}To`).value = "";
+    if (document.getElementById(`${ctx}Juz`))
+      document.getElementById(`${ctx}Juz`).value = "";
+  } else {
+    showToast(
+      `تعذر تسجيل بعض الواجبات (${failedItems.join("، ")})، حاول مجدداً.`,
+      "error",
+    );
+  }
+
+  fetchDataFromSheets();
+}
 
 function renderAssignmentsTable(currentStudentId) {
   const container = document.getElementById("studentProfileAssignments");

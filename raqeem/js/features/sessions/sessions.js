@@ -10,6 +10,86 @@ function initSurahDatalist() {
   });
 }
 
+// قائمة انتظار السور اللي رح تنحفظ مع بعض بنفس جلسة التسميع
+// (مشان يقدر الأستاذ يضيف أكتر من سورة قبل ما يضغط "حفظ التسميع")
+let pendingSessionSurahs = [];
+
+function renderSessionSurahQueue() {
+  const containerEl = document.getElementById("sessionSurahQueueList");
+  if (!containerEl) return;
+  if (!pendingSessionSurahs.length) {
+    containerEl.innerHTML =
+      '<div class="text-muted small fst-italic">لسا ما ضفت ولا سورة للقائمة</div>';
+    return;
+  }
+  containerEl.innerHTML = pendingSessionSurahs
+    .map(
+      (item, idx) => `
+        <div class="border rounded-2 px-2 py-2 mb-1 bg-white">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="small">
+              <span class="fw-bold">${item.surah}</span>
+              <span class="text-muted"> (الآيات ${item.from_verse} - ${item.to_verse})</span>
+            </span>
+            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeSurahFromSessionQueue(${idx})">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="small text-muted mt-1">
+            ${getRatingStarsHtml(item.rating)} · أخطاء: ${item.errors}
+            ${item.notes ? `<br>ملاحظات: ${item.notes}` : ""}
+          </div>
+        </div>`,
+    )
+    .join("");
+}
+
+function addSurahToSessionQueue() {
+  const surah = document.getElementById("sessSurah").value.trim();
+  const from_verse = document.getElementById("sessFrom").value;
+  const to_verse = document.getElementById("sessTo").value;
+  const rating = document.getElementById("sessRating").value;
+  const errors = document.getElementById("sessErrors").value;
+  const notes = document.getElementById("sessNotes").value.trim();
+
+  if (!isValidSurah(surah)) {
+    showToast("الرجاء اختيار اسم سورة صحيح من القائمة أولاً!", "error");
+    return;
+  }
+  if (!from_verse || !to_verse) {
+    showToast("الرجاء تحديد من آية وإلى آية قبل الإضافة!", "error");
+    return;
+  }
+
+  pendingSessionSurahs.push({
+    surah,
+    from_verse: Number(from_verse),
+    to_verse: Number(to_verse),
+    rating: Number(rating),
+    errors: Number(errors),
+    notes,
+  });
+  renderSessionSurahQueue();
+
+  // تفريغ حقول السورة الحالية مشان يدخل الأستاذ السورة يلي بعدها (كل سورة إلها تقييمها وملاحظاتها الخاصة)
+  document.getElementById("sessSurah").value = "";
+  document.getElementById("sessFrom").value = "";
+  document.getElementById("sessTo").value = "";
+  document.getElementById("sessRating").value = "3";
+  document.getElementById("sessErrors").value = "0";
+  document.getElementById("sessNotes").value = "";
+  document.getElementById("fullSurahCheck").checked = false;
+  document.getElementById("sessFrom").readOnly = false;
+  document.getElementById("sessTo").readOnly = false;
+  document.getElementById("surahInfoLabel").innerText = "";
+  showToast(`تمت إضافة سورة ${surah} للقائمة`, "success");
+}
+
+function removeSurahFromSessionQueue(index) {
+  pendingSessionSurahs.splice(index, 1);
+  renderSessionSurahQueue();
+}
+
 
 function onSurahChange() {
   const surahName = document.getElementById("sessSurah").value.trim();
@@ -103,7 +183,7 @@ function renderRecentSessionsTable() {
 }
 
 
-function saveSession(e) {
+async function saveSession(e) {
   e.preventDefault();
   handleStudentSelect();
 
@@ -117,18 +197,35 @@ function saveSession(e) {
     .getElementById("sessStudentHiddenName")
     .value.trim();
 
-  const surah = document.getElementById("sessSurah").value.trim();
-  const from_verse = document.getElementById("sessFrom").value;
-  const to_verse = document.getElementById("sessTo").value;
-  const rating = document.getElementById("sessRating").value;
-  const errors = document.getElementById("sessErrors").value;
-  const notes = document.getElementById("sessNotes").value.trim();
-
   if (!studentId || !studentName) {
     showToast(
       "الرجاء كتابة واختيار اسم طالب صحيح من القائمة المنسدلة للبحث!",
       "error",
     );
+    return;
+  }
+
+  // إذا في سور بالقائمة استخدمها، وإلا اعتبر الحقول الحالية سورة وحيدة (تسميع سريع لسورة وحدة)
+  // كل سورة معها تقييمها وأخطاؤها وملاحظاتها الخاصة فيها
+  let itemsToSave = [...pendingSessionSurahs];
+  const currentSurah = document.getElementById("sessSurah").value.trim();
+  if (currentSurah) {
+    if (!isValidSurah(currentSurah)) {
+      showToast("الرجاء اختيار اسم سورة صحيح من القائمة!", "error");
+      return;
+    }
+    itemsToSave.push({
+      surah: currentSurah,
+      from_verse: Number(document.getElementById("sessFrom").value),
+      to_verse: Number(document.getElementById("sessTo").value),
+      rating: Number(document.getElementById("sessRating").value),
+      errors: Number(document.getElementById("sessErrors").value),
+      notes: document.getElementById("sessNotes").value.trim(),
+    });
+  }
+
+  if (itemsToSave.length === 0) {
+    showToast("الرجاء إضافة سورة واحدة على الأقل قبل الحفظ!", "error");
     return;
   }
 
@@ -146,58 +243,78 @@ function saveSession(e) {
     ":" +
     String(now.getSeconds()).padStart(2, "0");
 
-  const payload = {
-    action: "add_session",
-    teacher: teacher,
-    student_id: Number(studentId),
-    student_name: studentName,
-    surah: surah,
-    from_verse: Number(from_verse),
-    to_verse: Number(to_verse),
-    rating: Number(rating),
-    errors: Number(errors),
-    notes: notes,
-    date: dateStr,
-    pin: APP_PIN,
-  };
-
-  console.log("🔍 Payload before send:", {
-    teacher,
-    studentId,
-    studentName,
-    surah,
-  });
-
   const submitBtn = e.target.querySelector('button[type="submit"]');
-  setBtnLoading(submitBtn, true, "جاري حفظ التسميع...");
+  setBtnLoading(submitBtn, true, `جاري حفظ 0 من ${itemsToSave.length}...`);
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "cors",
-    body: JSON.stringify(payload),
-  })
-    .then(() => {
-      showToast("تم حفظ التسميع ومزامنته بنجاح!", "success");
-      document.getElementById("sessionForm").reset();
-      document.getElementById("fullSurahCheck").checked = false;
-      document.getElementById("sessFrom").readOnly = false;
-      document.getElementById("sessTo").readOnly = false;
-      document.getElementById("surahInfoLabel").innerText = "";
-      switchTab(
-        "dashboard",
-        document.querySelector(".navbar-nav .nav-link"),
-      );
-      fetchDataFromSheets();
-    })
-    .catch((err) => {
+  // بنبعت كل سورة على حدة بالترتيب (وحدة وحدة)، بدون أي إعادة تحميل للصفحة بينهم،
+  // وبس أول ما تخلص كل السور منحدّث الشاشة مرة وحدة بالنهاية
+  let successCount = 0;
+  const failedSurahs = [];
+
+  for (let i = 0; i < itemsToSave.length; i++) {
+    const item = itemsToSave[i];
+    setBtnLoading(
+      submitBtn,
+      true,
+      `جاري حفظ ${i + 1} من ${itemsToSave.length}...`,
+    );
+
+    const payload = {
+      action: "add_session",
+      teacher: teacher,
+      student_id: Number(studentId),
+      student_name: studentName,
+      surah: item.surah,
+      from_verse: item.from_verse,
+      to_verse: item.to_verse,
+      rating: item.rating,
+      errors: item.errors,
+      notes: item.notes || "",
+      date: dateStr,
+      pin: APP_PIN,
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(payload),
+      });
+      successCount++;
+    } catch (err) {
       console.error(err);
-      showToast(
-        "تعذر حفظ التسميع، تأكد من الاتصال بالإنترنت وحاول مجدداً.",
-        "error",
-      );
-    })
-    .finally(() => {
-      setBtnLoading(submitBtn, false);
-    });
+      failedSurahs.push(item.surah);
+    }
+  }
+
+  setBtnLoading(submitBtn, false);
+
+  if (failedSurahs.length === 0) {
+    showToast(
+      successCount > 1
+        ? `تم حفظ ${successCount} سور ومزامنتها بنجاح!`
+        : "تم حفظ التسميع ومزامنته بنجاح!",
+      "success",
+    );
+  } else {
+    showToast(
+      `تعذر حفظ بعض السور (${failedSurahs.join("، ")})، تأكد من الاتصال وأعد المحاولة.`,
+      "error",
+    );
+  }
+
+  // تصفير النموذج والقائمة فقط إذا انحفظت كل السور بنجاح
+  if (failedSurahs.length === 0) {
+    pendingSessionSurahs = [];
+    renderSessionSurahQueue();
+    document.getElementById("sessionForm").reset();
+    document.getElementById("fullSurahCheck").checked = false;
+    document.getElementById("sessFrom").readOnly = false;
+    document.getElementById("sessTo").readOnly = false;
+    document.getElementById("surahInfoLabel").innerText = "";
+    switchTab("dashboard", document.querySelector(".navbar-nav .nav-link"));
+  }
+
+  fetchDataFromSheets();
 }
 

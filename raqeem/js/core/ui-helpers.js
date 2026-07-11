@@ -101,3 +101,48 @@ function getAssignmentStatusColorClass(status) {
   return "text-warning fw-bold";
 }
 
+// تتحقق أنو اسم السورة المكتوب موجود فعلياً بقائمة السور الرسمية (quranSurahs)
+// هاي أهم نقطة مشتركة: أي مكان بالتطبيق بدو يتحقق من سورة، يستخدم هاي الدالة
+function isValidSurah(surahName) {
+  return Object.prototype.hasOwnProperty.call(
+    quranSurahs,
+    (surahName || "").trim(),
+  );
+}
+
+// تعبئة أي select بقائمة الأجزاء 1-30 (تُستخدم بخيار "اختبار جزء")
+function populateJuzSelect(selectEl) {
+  if (!selectEl) return;
+  selectEl.innerHTML = '<option value="">اختر الجزء...</option>';
+  juzList.forEach((j) => {
+    selectEl.innerHTML += `<option value="${j}">الجزء ${j}</option>`;
+  });
+}
+
+// دالة عرض موحّدة لأي "قائمة انتظار" عناصر (سور تسميع أو سور واجب)
+// items: مصفوفة عناصر فيها surah/from_verse/to_verse على الأقل
+// containerEl: العنصر اللي رح تترسم فيه القائمة
+// onRemove: دالة تستدعى مع index العنصر عند الضغط على زر الحذف
+function renderQueueList(items, containerEl, onRemoveName) {
+  if (!containerEl) return;
+  if (!items.length) {
+    containerEl.innerHTML =
+      '<div class="text-muted small fst-italic">لسا ما ضفت ولا سورة للقائمة</div>';
+    return;
+  }
+  containerEl.innerHTML = items
+    .map(
+      (item, idx) => `
+        <div class="d-flex align-items-center justify-content-between border rounded-2 px-2 py-1 mb-1 bg-white">
+          <span class="small">
+            <span class="fw-bold">${item.surah}</span>
+            ${item.from_verse || item.to_verse ? `<span class="text-muted"> (${item.from_verse || 1} - ${item.to_verse || quranSurahs[item.surah] || ""})</span>` : ""}
+          </span>
+          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="${onRemoveName}(${idx})">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>`,
+    )
+    .join("");
+}
+

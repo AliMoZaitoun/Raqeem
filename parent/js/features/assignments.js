@@ -29,7 +29,7 @@ function renderAssignments(stAssignments) {
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <div>
                     <h5 class="fw-bold text-primary mb-1">${current.surah}</h5>
-                    <small class="text-muted">من الآية ${current.from_verse} إلى ${current.to_verse}</small>
+                    ${current.from_verse && current.to_verse ? `<small class="text-muted">من الآية ${current.from_verse} إلى ${current.to_verse}</small>` : ""}
                 </div>
                 <div>${getStatusHTML(current.status)}</div>
             </div>
@@ -48,7 +48,7 @@ function renderAssignments(stAssignments) {
                 <div class="assignment-history-item">
                     <div>
                         <span class="fw-bold text-dark">${a.surah}</span>
-                        <span class="small text-muted">— الآيات ${a.from_verse} إلى ${a.to_verse}</span>
+                        ${a.from_verse && a.to_verse ? `<span class="small text-muted">— الآيات ${a.from_verse} إلى ${a.to_verse}</span>` : ""}
                         <div class="small text-muted mt-1">
                             <i class="fas fa-calendar-alt me-1"></i>${formatArabicDate(a.date)}
                         </div>

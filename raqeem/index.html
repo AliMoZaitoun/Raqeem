@@ -279,7 +279,6 @@
                         type="number"
                         class="form-control"
                         id="sessFrom"
-                        required
                         min="1"
                       />
                     </div>
@@ -289,15 +288,32 @@
                         type="number"
                         class="form-control"
                         id="sessTo"
-                        required
                         min="1"
                       />
                     </div>
                   </div>
 
+                  <!-- دعم تسميع أكثر من سورة بنفس الجلسة: يضيف الأستاذ كل سورة للقائمة
+                       ثم يضغط "حفظ التسميع" بالأسفل فترسل كل السور تباعاً بدون أي تحميل صفحة -->
+                  <div class="text-end mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary fw-bold"
+                      onclick="addSurahToSessionQueue()"
+                    >
+                      <i class="fas fa-plus me-1"></i> أضف سورة أخرى لنفس الجلسة
+                    </button>
+                  </div>
+                  <div id="sessionSurahQueueList" class="mb-3">
+                    <div class="text-muted small fst-italic">
+                      لسا ما ضفت ولا سورة للقائمة
+                    </div>
+                  </div>
+
+
                   <div class="row">
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">التقييم الرقمي</label>
+                      <label class="form-label">التقييم الرقمي (لهذه السورة)</label>
                       <select class="form-select" id="sessRating" required>
                         <option value="3">3 - ممتاز / جيد جداً</option>
                         <option value="2">2 - جيد / بحاجة لتمكين</option>
@@ -305,7 +321,7 @@
                       </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">عدد الأخطاء المرتكبة</label>
+                      <label class="form-label">عدد الأخطاء المرتكبة (لهذه السورة)</label>
                       <input
                         type="number"
                         class="form-control"
@@ -318,7 +334,7 @@
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ملاحظات وتوجيهات الأستاذ</label>
+                    <label class="form-label">ملاحظات وتوجيهات الأستاذ (لهذه السورة)</label>
                     <textarea
                       class="form-control"
                       id="sessNotes"
@@ -332,46 +348,103 @@
                       والتحضير القادم (اختياري)
                     </div>
                     <div class="card-body py-3">
-                      <div class="row g-2">
-                        <div class="col-md-6">
-                          <label class="form-label small fw-bold mb-1"
-                            >السورة المطلوبة للتحضير:</label
-                          >
-                          <input
-                            type="text"
-                            id="assignSurah"
-                            class="form-control form-control-sm"
-                            placeholder="مثال: المسد"
-                          />
+                      <!-- نوع الواجب: تسميع سورة/سور أو اختبار جزء -->
+                      <div class="btn-group w-100 mb-3" role="group">
+                        <input
+                          type="radio"
+                          class="btn-check"
+                          name="assignType"
+                          id="assignTypeRecitation"
+                          checked
+                          onchange="toggleAssignmentType('assign')"
+                        />
+                        <label
+                          class="btn btn-outline-success btn-sm"
+                          for="assignTypeRecitation"
+                          >📖 تسميع سورة / سور</label
+                        >
+                        <input
+                          type="radio"
+                          class="btn-check"
+                          name="assignType"
+                          id="assignTypeTest"
+                          onchange="toggleAssignmentType('assign')"
+                        />
+                        <label
+                          class="btn btn-outline-success btn-sm"
+                          for="assignTypeTest"
+                          >📝 اختبار جزء</label
+                        >
+                      </div>
+
+                      <div id="assignRecitationFields">
+                        <div class="row g-2">
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold mb-1"
+                              >السورة المطلوبة للتحضير:</label
+                            >
+                            <input
+                              type="text"
+                              id="assignSurah"
+                              list="surahDatalist"
+                              class="form-control form-control-sm"
+                              placeholder="اكتب واختر من القائمة..."
+                            />
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1"
+                              >من آية:</label
+                            >
+                            <input
+                              type="number"
+                              id="assignFrom"
+                              class="form-control form-control-sm"
+                              placeholder="1"
+                            />
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1"
+                              >إلى آية:</label
+                            >
+                            <input
+                              type="number"
+                              id="assignTo"
+                              class="form-control form-control-sm"
+                              placeholder="آخرها"
+                            />
+                          </div>
                         </div>
-                        <div class="col-md-3">
-                          <label class="form-label small fw-bold mb-1"
-                            >من آية:</label
+                        <div class="text-end mt-2">
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-outline-success fw-bold"
+                            onclick="addSurahToAssignmentQueue('assign')"
                           >
-                          <input
-                            type="number"
-                            id="assignFrom"
-                            class="form-control form-control-sm"
-                            placeholder="1"
-                          />
+                            <i class="fas fa-plus me-1"></i> أضف سورة أخرى
+                            للواجب
+                          </button>
                         </div>
-                        <div class="col-md-3">
-                          <label class="form-label small fw-bold mb-1"
-                            >إلى آية:</label
-                          >
-                          <input
-                            type="number"
-                            id="assignTo"
-                            class="form-control form-control-sm"
-                            placeholder="آخرها"
-                          />
+                        <div id="assignQueueList" class="mt-2">
+                          <div class="text-muted small fst-italic">
+                            لسا ما ضفت ولا سورة للقائمة
+                          </div>
                         </div>
                       </div>
+
+                      <div id="assignTestFields" class="d-none">
+                        <label class="form-label small fw-bold mb-1"
+                          >الجزء المطلوب اختباره:</label
+                        >
+                        <select id="assignJuz" class="form-select form-select-sm">
+                          <option value="">اختر الجزء...</option>
+                        </select>
+                      </div>
+
                       <div class="text-end mt-2">
                         <button
                           type="button"
                           class="btn btn-sm btn-success fw-bold"
-                          onclick="saveStudentAssignment(this)"
+                          onclick="saveStudentAssignment(this, 'assign')"
                         >
                           <i class="fas fa-plus-circle me-1"></i> تثبيت الواجب
                           للطالب
@@ -662,35 +735,95 @@
                     تحديد الواجب القادم
                   </div>
                   <div class="card-body">
-                    <div class="row g-3">
-                      <div class="col-md-4">
-                        <input
-                          type="text"
-                          id="profileAssignSurah"
-                          class="form-control"
-                          placeholder="اسم السورة"
-                        />
+                    <!-- نوع الواجب: تسميع سورة/سور أو اختبار جزء -->
+                    <div class="btn-group w-100 mb-3" role="group">
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="profileAssignType"
+                        id="profileAssignTypeRecitation"
+                        checked
+                        onchange="toggleAssignmentType('profileAssign')"
+                      />
+                      <label
+                        class="btn btn-outline-success btn-sm"
+                        for="profileAssignTypeRecitation"
+                        >📖 تسميع سورة / سور</label
+                      >
+                      <input
+                        type="radio"
+                        class="btn-check"
+                        name="profileAssignType"
+                        id="profileAssignTypeTest"
+                        onchange="toggleAssignmentType('profileAssign')"
+                      />
+                      <label
+                        class="btn btn-outline-success btn-sm"
+                        for="profileAssignTypeTest"
+                        >📝 اختبار جزء</label
+                      >
+                    </div>
+
+                    <div id="profileAssignRecitationFields">
+                      <div class="row g-3">
+                        <div class="col-md-4">
+                          <input
+                            type="text"
+                            id="profileAssignSurah"
+                            list="surahDatalist"
+                            class="form-control"
+                            placeholder="اكتب واختر السورة من القائمة"
+                          />
+                        </div>
+                        <div class="col-md-4">
+                          <input
+                            type="number"
+                            id="profileAssignFrom"
+                            class="form-control"
+                            placeholder="من"
+                          />
+                        </div>
+                        <div class="col-md-4">
+                          <input
+                            type="number"
+                            id="profileAssignTo"
+                            class="form-control"
+                            placeholder="إلى"
+                          />
+                        </div>
                       </div>
-                      <div class="col-md-4">
-                        <input
-                          type="number"
-                          id="profileAssignFrom"
-                          class="form-control"
-                          placeholder="من"
-                        />
+                      <div class="text-end mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success fw-bold"
+                          onclick="addSurahToAssignmentQueue('profileAssign')"
+                        >
+                          <i class="fas fa-plus me-1"></i> أضف سورة أخرى
+                          للواجب
+                        </button>
                       </div>
-                      <div class="col-md-4">
-                        <input
-                          type="number"
-                          id="profileAssignTo"
-                          class="form-control"
-                          placeholder="إلى"
-                        />
+                      <div id="profileAssignQueueList" class="mt-2">
+                        <div class="text-muted small fst-italic">
+                          لسا ما ضفت ولا سورة للقائمة
+                        </div>
                       </div>
                     </div>
+
+                    <div id="profileAssignTestFields" class="d-none">
+                      <label class="form-label small fw-bold mb-1"
+                        >الجزء المطلوب اختباره:</label
+                      >
+                      <select
+                        id="profileAssignJuz"
+                        class="form-select"
+                      >
+                        <option value="">اختر الجزء...</option>
+                      </select>
+                    </div>
+
                     <button
                       class="btn btn-outline-success w-100 mt-3"
-                      onclick="saveStudentAssignment(this)"
+                      onclick="saveStudentAssignment(this, 'profileAssign')"
                     >
                       <i class="fas fa-save me-1"></i> حفظ الواجب
                     </button>
