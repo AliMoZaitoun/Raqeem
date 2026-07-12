@@ -1,9 +1,3 @@
-// ==============================================
-// assignments.js — الواجبات (تسميع سور متعددة أو اختبار جزء)
-// ==============================================
-
-// قائمة انتظار السور لكل نموذج إضافة واجب على حدة (النموذج الأول بصفحة "تسميع جديد"،
-// والثاني بتبويب الواجبات بالملف الشخصي)، مفتاحها هو الـ context
 let assignmentQueues = { assign: [], profileAssign: [] };
 
 function renderAssignmentQueue(ctx) {
@@ -285,3 +279,4 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
       if (selectEl) selectEl.disabled = false;
     });
 }
+
