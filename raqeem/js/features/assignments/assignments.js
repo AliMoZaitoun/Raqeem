@@ -1,3 +1,9 @@
+// ==============================================
+// assignments.js — الواجبات (تسميع سور متعددة أو اختبار جزء)
+// ==============================================
+
+// قائمة انتظار السور لكل نموذج إضافة واجب على حدة (النموذج الأول بصفحة "تسميع جديد"،
+// والثاني بتبويب الواجبات بالملف الشخصي)، مفتاحها هو الـ context
 let assignmentQueues = { assign: [], profileAssign: [] };
 
 function renderAssignmentQueue(ctx) {
@@ -44,14 +50,12 @@ function addSurahToAssignmentQueue(ctx) {
 // تبديل عرض وضع "تسميع سورة/سور" مقابل وضع "اختبار جزء"، موحّد لأي نموذج عبر الـ ctx
 function toggleAssignmentType(ctx) {
   const isTest = document.getElementById(`${ctx}TypeTest`).checked;
-  document.getElementById(`${ctx}RecitationFields`).classList.toggle(
-    "d-none",
-    isTest,
-  );
-  document.getElementById(`${ctx}TestFields`).classList.toggle(
-    "d-none",
-    !isTest,
-  );
+  document
+    .getElementById(`${ctx}RecitationFields`)
+    .classList.toggle("d-none", isTest);
+  document
+    .getElementById(`${ctx}TestFields`)
+    .classList.toggle("d-none", !isTest);
   if (isTest) {
     populateJuzSelect(document.getElementById(`${ctx}Juz`));
   }
@@ -102,8 +106,7 @@ async function saveStudentAssignment(btnEl, ctx) {
       }
       itemsToSave.push({
         surah: currentSurah,
-        from_verse:
-          document.getElementById(`${ctx}From`).value.trim() || "1",
+        from_verse: document.getElementById(`${ctx}From`).value.trim() || "1",
         to_verse:
           document.getElementById(`${ctx}To`).value.trim() ||
           String(quranSurahs[currentSurah]),
@@ -280,3 +283,93 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
     });
 }
 
+// ==============================================
+// لوحة "واجبات الطالب" ضمن نموذج التسميع الجديد
+// بتعرض واجبات الطالب فوراً عند اختياره، وبتسمح تعديل حالتها من نفس المكان
+// (نفس دالة updateAssignmentStatus يلي بتستخدمها لوحة الملف الشخصي، ما في تكرار منطق)
+// ==============================================
+
+function togglePendingAssignPanel() {
+  const header = document.querySelector(
+    "#sessionPendingAssignmentsWrap .pending-assign-header",
+  );
+  const body = document.getElementById("pendingAssignBody");
+  if (!header || !body) return;
+  header.classList.toggle("open");
+  body.classList.toggle("open");
+}
+
+function renderPendingAssignmentsPanel(studentId) {
+  const wrap = document.getElementById("sessionPendingAssignmentsWrap");
+  const body = document.getElementById("pendingAssignBody");
+  const countBadge = document.getElementById("pendingAssignCountBadge");
+  const header = document.querySelector(
+    "#sessionPendingAssignmentsWrap .pending-assign-header",
+  );
+  if (!wrap || !body || !countBadge || !header) return;
+
+  if (!studentId || !appData.assignments) {
+    wrap.classList.add("d-none");
+    return;
+  }
+
+  const studentAssignments = appData.assignments.filter(
+    (a) => Number(a.student_id) === Number(studentId),
+  );
+
+  if (studentAssignments.length === 0) {
+    wrap.classList.remove("d-none");
+    countBadge.innerText = "0";
+    body.innerHTML =
+      '<div class="pending-assign-empty">🎉 لا توجد واجبات مسجّلة على هذا الطالب حالياً</div>';
+    header.classList.remove("open");
+    body.classList.remove("open");
+    return;
+  }
+
+  // الواجبات "قيد الانتظار" أولاً مشان الأستاذ يشوفها بأول نظرة، والباقي بعدها
+  const sorted = [...studentAssignments].sort((a, b) => {
+    const rank = (s) => (s === "قيد الانتظار" ? 0 : s === "لم ينجز" ? 1 : 2);
+    return rank(a.status) - rank(b.status);
+  });
+
+  const pendingCount = studentAssignments.filter(
+    (a) => a.status === "قيد الانتظار",
+  ).length;
+
+  wrap.classList.remove("d-none");
+  countBadge.innerText = pendingCount;
+
+  body.innerHTML = sorted
+    .map((assign) => {
+      const isDone = assign.status === "تم الإنجاز";
+      const isFailed = assign.status === "لم ينجز";
+      const colorClass = getAssignmentStatusColorClass(assign.status);
+      const hasVerses = assign.from_verse && assign.to_verse;
+      return `
+        <div class="pending-assign-row">
+          <div class="pending-assign-info">
+            <span class="surah-name">${assign.surah}</span>
+            ${hasVerses ? `<span class="verse-range">الآيات ${assign.from_verse} - ${assign.to_verse}</span>` : ""}
+          </div>
+          <select
+            class="form-select pending-assign-status-select ${colorClass}"
+            onchange="updateAssignmentStatus('${assign.id}', this.value, this)"
+          >
+            <option value="قيد الانتظار" ${assign.status === "قيد الانتظار" ? "selected" : ""}>⏳ قيد الانتظار</option>
+            <option value="تم الإنجاز" ${isDone ? "selected" : ""}>✅ تم الإنجاز</option>
+            <option value="لم ينجز" ${isFailed ? "selected" : ""}>❌ لم ينجز</option>
+          </select>
+        </div>`;
+    })
+    .join("");
+
+  // نفتح اللوحة تلقائياً إذا في واجبات "قيد الانتظار" (يعني بتحتاج انتباه الأستاذ فوراً)
+  if (pendingCount > 0) {
+    header.classList.add("open");
+    body.classList.add("open");
+  } else {
+    header.classList.remove("open");
+    body.classList.remove("open");
+  }
+}

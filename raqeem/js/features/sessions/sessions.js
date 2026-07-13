@@ -90,7 +90,6 @@ function removeSurahFromSessionQueue(index) {
   renderSessionSurahQueue();
 }
 
-
 function onSurahChange() {
   const surahName = document.getElementById("sessSurah").value.trim();
   const label = document.getElementById("surahInfoLabel");
@@ -112,7 +111,6 @@ function onSurahChange() {
     label.innerText = "";
   }
 }
-
 
 function toggleFullSurah(checkbox) {
   const surahName = document.getElementById("sessSurah").value.trim();
@@ -138,17 +136,13 @@ function toggleFullSurah(checkbox) {
   }
 }
 
-
 function updateDashboardStats() {
   document.getElementById("statTotalStudents").innerText =
     appData.students.length;
   document.getElementById("statTotalSessions").innerText =
     appData.sessions.length;
   if (appData.sessions.length > 0) {
-    let sum = appData.sessions.reduce(
-      (acc, curr) => acc + curr.rating,
-      0,
-    );
+    let sum = appData.sessions.reduce((acc, curr) => acc + curr.rating, 0);
     document.getElementById("statAvgRating").innerText =
       `${(sum / appData.sessions.length).toFixed(1)} / 3`;
   } else {
@@ -156,13 +150,10 @@ function updateDashboardStats() {
   }
 }
 
-
 function renderRecentSessionsTable() {
   const tbody = document.getElementById("recentSessionsTableBody");
   tbody.innerHTML = "";
-  let sorted = [...appData.sessions]
-    .sort((a, b) => b.id - a.id)
-    .slice(0, 5);
+  let sorted = [...appData.sessions].sort((a, b) => b.id - a.id).slice(0, 5);
   if (sorted.length === 0) {
     tbody.innerHTML =
       '<tr class="no-data-row"><td colspan="6" class="text-center text-muted">لا يوجد سجلات بعد</td></tr>';
@@ -181,7 +172,6 @@ function renderRecentSessionsTable() {
             `;
   });
 }
-
 
 async function saveSession(e) {
   e.preventDefault();
@@ -312,9 +302,9 @@ async function saveSession(e) {
     document.getElementById("sessFrom").readOnly = false;
     document.getElementById("sessTo").readOnly = false;
     document.getElementById("surahInfoLabel").innerText = "";
+    renderPendingAssignmentsPanel(null);
     switchTab("dashboard", document.querySelector(".navbar-nav .nav-link"));
   }
 
   fetchDataFromSheets();
 }
-

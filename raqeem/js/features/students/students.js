@@ -12,11 +12,8 @@ function populateStudentsDatalist() {
   });
 }
 
-
 function handleStudentSelect() {
-  const inputVal = document
-    .getElementById("sessStudentInput")
-    .value.trim();
+  const inputVal = document.getElementById("sessStudentInput").value.trim();
   const hiddenId = document.getElementById("sessStudentHiddenId");
   const hiddenName = document.getElementById("sessStudentHiddenName");
 
@@ -27,25 +24,26 @@ function handleStudentSelect() {
 
     hiddenId.value = id;
     hiddenName.value = name;
+    renderPendingAssignmentsPanel(id);
     return;
   }
 
   const student = appData.students.find(
     (st) =>
-      st.name === inputVal ||
-      st.name.toLowerCase() === inputVal.toLowerCase(),
+      st.name === inputVal || st.name.toLowerCase() === inputVal.toLowerCase(),
   );
 
   if (student) {
     hiddenId.value = student.id;
     hiddenName.value = student.name;
+    renderPendingAssignmentsPanel(student.id);
     return;
   }
 
   hiddenId.value = "";
   hiddenName.value = "";
+  renderPendingAssignmentsPanel(null);
 }
-
 
 function renderStudentsCards(filteredList = null) {
   const container = document.getElementById("studentsContainer");
@@ -57,9 +55,7 @@ function renderStudentsCards(filteredList = null) {
     return;
   }
   list.forEach((st) => {
-    let count = appData.sessions.filter(
-      (s) => s.student_id === st.id,
-    ).length;
+    let count = appData.sessions.filter((s) => s.student_id === st.id).length;
 
     container.innerHTML += `
                 <div class="col-md-4 col-sm-6 mb-3">
@@ -93,7 +89,6 @@ function renderStudentsCards(filteredList = null) {
   });
 }
 
-
 function filterStudents() {
   const q = document
     .getElementById("studentSearchInput")
@@ -111,7 +106,6 @@ function filterStudents() {
   );
   renderStudentsCards(res);
 }
-
 
 function viewStudentProfile(studentId) {
   let student = appData.students.find((st) => st.id === studentId);
@@ -163,14 +157,11 @@ function viewStudentProfile(studentId) {
   // إعادة ضبط التبويب الأول عند كل فتح للمودال
   // (بوتستراب بيتكفل تلقائياً بالتبديل بين التبويبات بما إنو الأزرار
   // فيها data-bs-toggle="tab"، فما في داعي لأي كود يدوي إضافي)
-  const firstTabBtn = document.querySelector(
-    "#profileTabs button.nav-link",
-  );
+  const firstTabBtn = document.querySelector("#profileTabs button.nav-link");
   if (firstTabBtn) {
     bootstrap.Tab.getOrCreateInstance(firstTabBtn).show();
   }
 }
-
 
 function saveStudent(e) {
   e.preventDefault();
@@ -178,9 +169,7 @@ function saveStudent(e) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let generatedPin = "";
   for (let i = 0; i < 4; i++) {
-    generatedPin += chars.charAt(
-      Math.floor(Math.random() * chars.length),
-    );
+    generatedPin += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
   const name = document.getElementById("stName").value.trim();
@@ -242,5 +231,3 @@ function saveStudent(e) {
       setBtnLoading(submitBtn, false);
     });
 }
-
-

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>نظام إدارة حلقة التسميع</title>
+    <title>نظام إدارة حلقة الجيل الصاعد</title>
     <!-- تضمين مكتبات التصميم والأيقونات والخطوط القديمة المرتبة -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"
@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="css/tables-tabs.css" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/toast.css" />
+    <link rel="stylesheet" href="css/pending-assignments.css" />
   </head>
   <body>
     <!-- حاوية التنبيهات العصرية -->
@@ -233,6 +234,32 @@
                     <input type="hidden" id="sessStudentHiddenName" />
                   </div>
 
+                  <!-- لوحة الواجبات المعلّقة على الطالب المختار: تظهر فوراً عند اختيار الطالب،
+                       وبتسمح للأستاذ يعدّل حالة الواجب من نفس الصفحة بدون ما يروح لملفه الشخصي -->
+                  <div id="sessionPendingAssignmentsWrap" class="d-none mb-3">
+                    <div
+                      class="pending-assign-header"
+                      onclick="togglePendingAssignPanel()"
+                    >
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="fw-bold">واجبات هذا الطالب</span>
+                        <span
+                          id="pendingAssignCountBadge"
+                          class="pending-assign-count-badge"
+                          >0</span
+                        >
+                      </div>
+                      <i
+                        class="fas fa-chevron-down pending-assign-chevron"
+                        id="pendingAssignChevron"
+                      ></i>
+                    </div>
+                    <div id="pendingAssignBody" class="pending-assign-body">
+                      <!-- يُعبأ برمجياً -->
+                    </div>
+                  </div>
+
                   <div class="row">
                     <!-- حقل السورة القديم الذكي مع ميزة البحث وعدد الآيات -->
                     <div class="col-md-6 mb-3">
@@ -310,10 +337,11 @@
                     </div>
                   </div>
 
-
                   <div class="row">
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">التقييم الرقمي (لهذه السورة)</label>
+                      <label class="form-label"
+                        >التقييم الرقمي (لهذه السورة)</label
+                      >
                       <select class="form-select" id="sessRating" required>
                         <option value="3">3 - ممتاز / جيد جداً</option>
                         <option value="2">2 - جيد / بحاجة لتمكين</option>
@@ -321,7 +349,9 @@
                       </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">عدد الأخطاء المرتكبة (لهذه السورة)</label>
+                      <label class="form-label"
+                        >عدد الأخطاء المرتكبة (لهذه السورة)</label
+                      >
                       <input
                         type="number"
                         class="form-control"
@@ -334,7 +364,9 @@
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label">ملاحظات وتوجيهات الأستاذ (لهذه السورة)</label>
+                    <label class="form-label"
+                      >ملاحظات وتوجيهات الأستاذ (لهذه السورة)</label
+                    >
                     <textarea
                       class="form-control"
                       id="sessNotes"
@@ -435,7 +467,10 @@
                         <label class="form-label small fw-bold mb-1"
                           >الجزء المطلوب اختباره:</label
                         >
-                        <select id="assignJuz" class="form-select form-select-sm">
+                        <select
+                          id="assignJuz"
+                          class="form-select form-select-sm"
+                        >
                           <option value="">اختر الجزء...</option>
                         </select>
                       </div>
@@ -798,8 +833,7 @@
                           class="btn btn-sm btn-outline-success fw-bold"
                           onclick="addSurahToAssignmentQueue('profileAssign')"
                         >
-                          <i class="fas fa-plus me-1"></i> أضف سورة أخرى
-                          للواجب
+                          <i class="fas fa-plus me-1"></i> أضف سورة أخرى للواجب
                         </button>
                       </div>
                       <div id="profileAssignQueueList" class="mt-2">
@@ -813,10 +847,7 @@
                       <label class="form-label small fw-bold mb-1"
                         >الجزء المطلوب اختباره:</label
                       >
-                      <select
-                        id="profileAssignJuz"
-                        class="form-select"
-                      >
+                      <select id="profileAssignJuz" class="form-select">
                         <option value="">اختر الجزء...</option>
                       </select>
                     </div>
@@ -876,7 +907,6 @@
       </div>
     </div>
 
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- ملفات JS مقسّمة حسب الوحدة الوظيفية — يجب الحفاظ على هذا الترتيب -->
     <!-- core: أساسيات مشتركة، لازم تحمّل أول -->
@@ -894,4 +924,3 @@
     <script src="js/core/main.js"></script>
   </body>
 </html>
-
