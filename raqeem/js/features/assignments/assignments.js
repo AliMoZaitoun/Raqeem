@@ -214,7 +214,7 @@ function renderAssignmentsTable(currentStudentId) {
     style="min-width: 130px"
     onchange="updateAssignmentStatus('${assign.id}', this.value, this)"
   >
-      <option value="قيد الانتظار" ${assign.status == "قيد الانتظار" ? "selected" : ""}>⏳ قيد الانتظار</option>
+      <option value="قيد التحضير" ${assign.status == "قيد التحضير" ? "selected" : ""}>⏳ قيد التحضير</option>
       <option value="تم الإنجاز" ${isDone ? "selected" : ""}>✅ تم الإنجاز</option>
       <option value="لم ينجز" ${isFailed ? "selected" : ""}>❌ لم ينجز</option>
   </select>
@@ -313,37 +313,25 @@ function renderPendingAssignmentsPanel(studentId) {
     return;
   }
 
-  const studentAssignments = appData.assignments.filter(
-    (a) => Number(a.student_id) === Number(studentId),
+  // بنعرض فقط الواجبات يلي حالتها "قيد التحضير" (يعني الطالب لسا ما سمعها)
+  const pendingAssignments = appData.assignments.filter(
+    (a) =>
+      Number(a.student_id) === Number(studentId) && a.status === "قيد التحضير",
   );
 
-  if (studentAssignments.length === 0) {
-    wrap.classList.remove("d-none");
-    countBadge.innerText = "0";
+  wrap.classList.remove("d-none");
+  countBadge.innerText = pendingAssignments.length;
+
+  if (pendingAssignments.length === 0) {
     body.innerHTML =
-      '<div class="pending-assign-empty">🎉 لا توجد واجبات مسجّلة على هذا الطالب حالياً</div>';
+      '<div class="pending-assign-empty">🎉 لا توجد واجبات قيد التحضير لهذا الطالب حالياً</div>';
     header.classList.remove("open");
     body.classList.remove("open");
     return;
   }
 
-  // الواجبات "قيد الانتظار" أولاً مشان الأستاذ يشوفها بأول نظرة، والباقي بعدها
-  const sorted = [...studentAssignments].sort((a, b) => {
-    const rank = (s) => (s === "قيد الانتظار" ? 0 : s === "لم ينجز" ? 1 : 2);
-    return rank(a.status) - rank(b.status);
-  });
-
-  const pendingCount = studentAssignments.filter(
-    (a) => a.status === "قيد الانتظار",
-  ).length;
-
-  wrap.classList.remove("d-none");
-  countBadge.innerText = pendingCount;
-
-  body.innerHTML = sorted
+  body.innerHTML = pendingAssignments
     .map((assign) => {
-      const isDone = assign.status === "تم الإنجاز";
-      const isFailed = assign.status === "لم ينجز";
       const colorClass = getAssignmentStatusColorClass(assign.status);
       const hasVerses = assign.from_verse && assign.to_verse;
       return `
@@ -356,20 +344,15 @@ function renderPendingAssignmentsPanel(studentId) {
             class="form-select pending-assign-status-select ${colorClass}"
             onchange="updateAssignmentStatus('${assign.id}', this.value, this)"
           >
-            <option value="قيد الانتظار" ${assign.status === "قيد الانتظار" ? "selected" : ""}>⏳ قيد الانتظار</option>
-            <option value="تم الإنجاز" ${isDone ? "selected" : ""}>✅ تم الإنجاز</option>
-            <option value="لم ينجز" ${isFailed ? "selected" : ""}>❌ لم ينجز</option>
+            <option value="قيد التحضير" selected>⏳ قيد التحضير</option>
+            <option value="تم الإنجاز">✅ تم الإنجاز</option>
+            <option value="لم ينجز">❌ لم ينجز</option>
           </select>
         </div>`;
     })
     .join("");
 
-  // نفتح اللوحة تلقائياً إذا في واجبات "قيد الانتظار" (يعني بتحتاج انتباه الأستاذ فوراً)
-  if (pendingCount > 0) {
-    header.classList.add("open");
-    body.classList.add("open");
-  } else {
-    header.classList.remove("open");
-    body.classList.remove("open");
-  }
+  // في واجبات قيد التحضير ← بتحتاج انتباه الأستاذ فوراً، فبنفتح اللوحة تلقائياً
+  header.classList.add("open");
+  body.classList.add("open");
 }
