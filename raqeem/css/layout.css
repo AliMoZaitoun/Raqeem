@@ -1,7 +1,3 @@
-/* ==============================================
-   layout.css — الناف بار، البطاقات، الفورمات، الأزرار
-   ================================================= */
-
 .navbar {
   background-color: var(--primary-color) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -67,4 +63,3 @@
 .btn-success:hover {
   background-color: #196619;
 }
-

@@ -14,6 +14,33 @@ function initSurahDatalist() {
 // (مشان يقدر الأستاذ يضيف أكتر من سورة قبل ما يضغط "حفظ التسميع")
 let pendingSessionSurahs = [];
 
+// إذا الأستاذ ضغط "ابدأ التسميع" من لوحة الواجبات، منخزّن معرّف الواجب هون
+// مشان أول ما يحفظ التسميع بنجاح، نحدّث حالة هاد الواجب لـ "تم الإنجاز" تلقائياً
+let linkedAssignmentId = null;
+
+// بتعبي حقول السورة/من آية/إلى آية بالتسميع تلقائياً من بيانات واجب موجود،
+// حتى الأستاذ بس يضيف التقييم وعدد الأخطاء ويحفظ (بدل ما يكتب كل شي من الصفر)
+function startSessionFromAssignment(assignmentId) {
+  const assign = appData.assignments.find((a) => a.id == assignmentId);
+  if (!assign) return;
+
+  document.getElementById("sessSurah").value = assign.surah;
+  document.getElementById("sessFrom").value = assign.from_verse;
+  document.getElementById("sessTo").value = assign.to_verse;
+  document.getElementById("fullSurahCheck").checked = false;
+  document.getElementById("sessFrom").readOnly = false;
+  document.getElementById("sessTo").readOnly = false;
+  onSurahChange();
+
+  linkedAssignmentId = assign.id;
+
+  document.getElementById("sessRating").focus();
+  showToast(
+    `تم تعبئة بيانات "${assign.surah}"، ضيف التقييم والأخطاء واحفظ التسميع 👍`,
+    "success",
+  );
+}
+
 function renderSessionSurahQueue() {
   const containerEl = document.getElementById("sessionSurahQueueList");
   if (!containerEl) return;
@@ -295,6 +322,13 @@ async function saveSession(e) {
 
   // تصفير النموذج والقائمة فقط إذا انحفظت كل السور بنجاح
   if (failedSurahs.length === 0) {
+    // إذا هالتسميع كان مربوط بواجب (ضغط الأستاذ "ابدأ التسميع" من لوحة الواجبات)،
+    // بنحدّث حالة الواجب لـ "تم الإنجاز" تلقائياً، بدون أي خطوة إضافية من الأستاذ
+    if (linkedAssignmentId) {
+      updateAssignmentStatus(linkedAssignmentId, "تم الإنجاز", null);
+      linkedAssignmentId = null;
+    }
+
     pendingSessionSurahs = [];
     renderSessionSurahQueue();
     document.getElementById("sessionForm").reset();

@@ -1,9 +1,3 @@
-// ==============================================
-// assignments.js — الواجبات (تسميع سور متعددة أو اختبار جزء)
-// ==============================================
-
-// قائمة انتظار السور لكل نموذج إضافة واجب على حدة (النموذج الأول بصفحة "تسميع جديد"،
-// والثاني بتبويب الواجبات بالملف الشخصي)، مفتاحها هو الـ context
 let assignmentQueues = { assign: [], profileAssign: [] };
 
 function renderAssignmentQueue(ctx) {
@@ -13,7 +7,6 @@ function renderAssignmentQueue(ctx) {
     `removeFromAssignmentQueue_${ctx}`,
   );
 }
-// دوال حذف منفصلة بالاسم لكل context (مطلوبة لأن onclick بالـ HTML بستدعي بالاسم مباشرة)
 function removeFromAssignmentQueue_assign(index) {
   assignmentQueues.assign.splice(index, 1);
   renderAssignmentQueue("assign");
@@ -23,7 +16,6 @@ function removeFromAssignmentQueue_profileAssign(index) {
   renderAssignmentQueue("profileAssign");
 }
 
-// إضافة سورة لقائمة انتظار الواجب (وضع "تسميع")، موحّدة لأي نموذج عبر الـ ctx
 function addSurahToAssignmentQueue(ctx) {
   const surah = document.getElementById(`${ctx}Surah`).value.trim();
   const fromVerse = document.getElementById(`${ctx}From`).value.trim();
@@ -47,23 +39,85 @@ function addSurahToAssignmentQueue(ctx) {
   showToast(`تمت إضافة سورة ${surah} لواجب التسميع`, "success");
 }
 
-// تبديل عرض وضع "تسميع سورة/سور" مقابل وضع "اختبار جزء"، موحّد لأي نموذج عبر الـ ctx
+function renderRecitedSurahsHint(ctx, studentId) {
+  const container = document.getElementById(`${ctx}RecitedHint`);
+  if (!container) return;
+
+  if (!studentId || !appData.sessions) {
+    container.classList.add("d-none");
+    container.innerHTML = "";
+    return;
+  }
+
+  const studentSessions = appData.sessions
+    .filter((s) => Number(s.student_id) === Number(studentId))
+    .sort((a, b) => b.id - a.id);
+
+  if (studentSessions.length === 0) {
+    container.classList.add("d-none");
+    container.innerHTML = "";
+    return;
+  }
+
+  const seen = new Set();
+  const uniqueRecited = [];
+  studentSessions.forEach((s) => {
+    if (!seen.has(s.surah)) {
+      seen.add(s.surah);
+      uniqueRecited.push(s);
+    }
+  });
+
+  const chipsHtml = uniqueRecited
+    .map(
+      (s) =>
+        `<span class="recited-hint-chip">${s.surah} (${s.from_verse}-${s.to_verse})</span>`,
+    )
+    .join("");
+
+  container.classList.remove("d-none");
+  container.innerHTML = `
+    <div class="recited-hint-header" onclick="toggleRecitedHint('${ctx}')">
+      <span class="recited-hint-title">
+        <i class="fas fa-circle-check"></i>
+        سمّع ${uniqueRecited.length} سورة سابقاً (آخر سورة: ${studentSessions[0].surah})
+      </span>
+      <i class="fas fa-chevron-down recited-hint-chevron" id="${ctx}RecitedChevron"></i>
+    </div>
+    <div class="recited-hint-chips-wrap" id="${ctx}RecitedChipsWrap">
+      <div class="recited-hint-chips">${chipsHtml}</div>
+    </div>
+  `;
+}
+
+function toggleRecitedHint(ctx) {
+  const chevron = document.getElementById(`${ctx}RecitedChevron`);
+  const wrap = document.getElementById(`${ctx}RecitedChipsWrap`);
+  if (!chevron || !wrap) return;
+  chevron.classList.toggle("open");
+  wrap.classList.toggle("open");
+}
+
 function toggleAssignmentType(ctx) {
-  const isTest = document.getElementById(`${ctx}TypeTest`).checked;
+  const isTestJuz = document.getElementById(`${ctx}TypeTest`).checked;
+  const isTestSurah = document.getElementById(`${ctx}TypeTestSurah`).checked;
+  const isRecitation = !isTestJuz && !isTestSurah;
+
   document
     .getElementById(`${ctx}RecitationFields`)
-    .classList.toggle("d-none", isTest);
+    .classList.toggle("d-none", !isRecitation);
+  document
+    .getElementById(`${ctx}TestSurahFields`)
+    .classList.toggle("d-none", !isTestSurah);
   document
     .getElementById(`${ctx}TestFields`)
-    .classList.toggle("d-none", !isTest);
-  if (isTest) {
+    .classList.toggle("d-none", !isTestJuz);
+
+  if (isTestJuz) {
     populateJuzSelect(document.getElementById(`${ctx}Juz`));
   }
 }
 
-// الدالة الموحّدة الوحيدة لحفظ الواجب، تُستدعى من مكانين بنفس الطريقة تماماً
-// btnEl: الزر اللي انضغط (لعرض حالة التحميل عليه)
-// ctx: "assign" (نموذج تسميع جديد) أو "profileAssign" (تبويب الواجبات بالبروفايل)
 async function saveStudentAssignment(btnEl, ctx) {
   let studentId, studentName;
 
@@ -80,10 +134,11 @@ async function saveStudentAssignment(btnEl, ctx) {
     return;
   }
 
-  const isTest = document.getElementById(`${ctx}TypeTest`).checked;
+  const isTestJuz = document.getElementById(`${ctx}TypeTest`).checked;
+  const isTestSurah = document.getElementById(`${ctx}TypeTestSurah`).checked;
   let itemsToSave = [];
 
-  if (isTest) {
+  if (isTestJuz) {
     const juz = document.getElementById(`${ctx}Juz`).value;
     if (!juz) {
       showToast("الرجاء اختيار رقم الجزء المطلوب اختباره!", "error");
@@ -92,6 +147,19 @@ async function saveStudentAssignment(btnEl, ctx) {
     itemsToSave = [
       {
         surah: `اختبار جزء ${juz}`,
+        from_verse: "",
+        to_verse: "",
+      },
+    ];
+  } else if (isTestSurah) {
+    const testSurah = document.getElementById(`${ctx}TestSurah`).value.trim();
+    if (!isValidSurah(testSurah)) {
+      showToast("الرجاء اختيار اسم سورة صحيح من القائمة!", "error");
+      return;
+    }
+    itemsToSave = [
+      {
+        surah: `اختبار سورة ${testSurah}`,
         from_verse: "",
         to_verse: "",
       },
@@ -163,7 +231,6 @@ async function saveStudentAssignment(btnEl, ctx) {
         : "تم تسجيل الواجب بنجاح!",
       "success",
     );
-    // تصفير الحقول والقائمة بعد نجاح كامل
     assignmentQueues[ctx] = [];
     renderAssignmentQueue(ctx);
     if (document.getElementById(`${ctx}Surah`))
@@ -174,6 +241,8 @@ async function saveStudentAssignment(btnEl, ctx) {
       document.getElementById(`${ctx}To`).value = "";
     if (document.getElementById(`${ctx}Juz`))
       document.getElementById(`${ctx}Juz`).value = "";
+    if (document.getElementById(`${ctx}TestSurah`))
+      document.getElementById(`${ctx}TestSurah`).value = "";
   } else {
     showToast(
       `تعذر تسجيل بعض الواجبات (${failedItems.join("، ")})، حاول مجدداً.`,
@@ -224,8 +293,6 @@ function renderAssignmentsTable(currentStudentId) {
   });
 }
 
-// تحديث حالة الواجب
-
 function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
   if (!assignmentId) return;
 
@@ -245,7 +312,6 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
       .forEach((cls) => selectEl.classList.add(cls));
   }
 
-  // تحديث لون النص فوراً بدون انتظار رد السيرفر
   applyColor(newStatus);
   if (selectEl) selectEl.disabled = true;
 
@@ -283,12 +349,6 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
     });
 }
 
-// ==============================================
-// لوحة "واجبات الطالب" ضمن نموذج التسميع الجديد
-// بتعرض واجبات الطالب فوراً عند اختياره، وبتسمح تعديل حالتها من نفس المكان
-// (نفس دالة updateAssignmentStatus يلي بتستخدمها لوحة الملف الشخصي، ما في تكرار منطق)
-// ==============================================
-
 function togglePendingAssignPanel() {
   const header = document.querySelector(
     "#sessionPendingAssignmentsWrap .pending-assign-header",
@@ -313,7 +373,6 @@ function renderPendingAssignmentsPanel(studentId) {
     return;
   }
 
-  // بنعرض فقط الواجبات يلي حالتها "قيد التحضير" (يعني الطالب لسا ما سمعها)
   const pendingAssignments = appData.assignments.filter(
     (a) =>
       Number(a.student_id) === Number(studentId) && a.status === "قيد التحضير",
@@ -340,6 +399,13 @@ function renderPendingAssignmentsPanel(studentId) {
             <span class="surah-name">${assign.surah}</span>
             ${hasVerses ? `<span class="verse-range">الآيات ${assign.from_verse} - ${assign.to_verse}</span>` : ""}
           </div>
+          ${
+            hasVerses
+              ? `<button type="button" class="btn btn-sm btn-success pending-assign-start-btn" onclick="startSessionFromAssignment('${assign.id}')">
+                  <i class="fas fa-play me-1"></i>ابدأ التسميع
+                </button>`
+              : ""
+          }
           <select
             class="form-select pending-assign-status-select ${colorClass}"
             onchange="updateAssignmentStatus('${assign.id}', this.value, this)"
@@ -352,7 +418,6 @@ function renderPendingAssignmentsPanel(studentId) {
     })
     .join("");
 
-  // في واجبات قيد التحضير ← بتحتاج انتباه الأستاذ فوراً، فبنفتح اللوحة تلقائياً
   header.classList.add("open");
   body.classList.add("open");
 }

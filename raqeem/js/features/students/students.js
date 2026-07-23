@@ -1,7 +1,3 @@
-// ==============================================
-// students.js — إدارة الطلاب (عرض، بحث، حفظ، ملف شامل)
-// ==============================================
-
 function populateStudentsDatalist() {
   const dl = document.getElementById("studentsDatalist");
   dl.innerHTML = "";
@@ -16,15 +12,27 @@ function handleStudentSelect() {
   const inputVal = document.getElementById("sessStudentInput").value.trim();
   const hiddenId = document.getElementById("sessStudentHiddenId");
   const hiddenName = document.getElementById("sessStudentHiddenName");
+  const prevId = hiddenId.value;
+
+  function clearLinkIfStudentChanged(newId) {
+    if (
+      String(prevId) !== String(newId || "") &&
+      typeof linkedAssignmentId !== "undefined"
+    ) {
+      linkedAssignmentId = null;
+    }
+  }
 
   const match = inputVal.match(/(.+?)\s*\(معرف:\s*(\d+)\)/);
   if (match) {
     const name = match[1].trim();
     const id = Number(match[2]);
 
+    clearLinkIfStudentChanged(id);
     hiddenId.value = id;
     hiddenName.value = name;
     renderPendingAssignmentsPanel(id);
+    renderRecitedSurahsHint("assign", id);
     return;
   }
 
@@ -34,15 +42,19 @@ function handleStudentSelect() {
   );
 
   if (student) {
+    clearLinkIfStudentChanged(student.id);
     hiddenId.value = student.id;
     hiddenName.value = student.name;
     renderPendingAssignmentsPanel(student.id);
+    renderRecitedSurahsHint("assign", student.id);
     return;
   }
 
+  clearLinkIfStudentChanged(null);
   hiddenId.value = "";
   hiddenName.value = "";
   renderPendingAssignmentsPanel(null);
+  renderRecitedSurahsHint("assign", null);
 }
 
 function renderStudentsCards(filteredList = null) {
@@ -138,6 +150,7 @@ function viewStudentProfile(studentId) {
 
   renderAssignmentsTable(studentId);
   renderTeacherNotesArchive(studentId);
+  renderRecitedSurahsHint("profileAssign", studentId);
 
   // تعبئة معرّف واسم الطالب فوراً بالحقول المخفية
   // حتى نموذجي "إضافة ملاحظة" و"تحديد واجب" ياخدوا الطالب المفتوح مباشرة

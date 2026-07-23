@@ -1,0 +1,201 @@
+/* ==================================================
+   assignment-card.css — تصميم عصري لكارد "تحديد الواجب"
+   بطاقات بظل وحواف دائرية، مستخدم بمكانين: نموذج التسميع
+   الجديد وتبويب الواجبات بالملف الشخصي (نفس الكلاسات بالمكانين)
+   =================================================== */
+
+.assign-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(26, 95, 122, 0.1);
+  border: 1px solid #eef2f3;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.assign-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #2a9d5c 0%, var(--secondary-color) 100%);
+  color: #fff;
+}
+.assign-card-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.assign-card-title {
+  font-weight: 800;
+  font-size: 1rem;
+}
+.assign-card-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.assign-card-body {
+  padding: 18px;
+}
+
+/* اختيار نوع الواجب: بطاقتين قابلتين للاختيار بدل الأزرار التقليدية */
+.assign-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.assign-type-toggle.assign-type-toggle-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.assign-type-toggle input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.assign-type-toggle label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 2px solid #e5edf0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6c8087;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+.assign-type-toggle label:hover {
+  border-color: #c7e3d1;
+}
+.assign-type-toggle input[type="radio"]:checked + label {
+  border-color: var(--secondary-color);
+  background: #eef8f1;
+  color: var(--secondary-color);
+  box-shadow: 0 2px 8px rgba(34, 139, 34, 0.15);
+}
+.assign-type-icon {
+  font-size: 1.3rem;
+}
+
+/* حقول الإدخال */
+.assign-field-group {
+  margin-bottom: 12px;
+}
+.assign-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.assign-field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7a8a90;
+  margin-bottom: 5px;
+}
+.assign-input {
+  width: 100%;
+  border: 1.5px solid #e5edf0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  font-family: "Cairo", sans-serif;
+  background: #fbfcfc;
+  transition: border-color 0.15s ease;
+}
+.assign-input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  background: #fff;
+}
+
+/* زر إضافة سورة أخرى */
+.assign-add-btn {
+  width: 100%;
+  border: 1.5px dashed #9bcbab;
+  background: #f4faf6;
+  color: var(--secondary-color);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  padding: 9px;
+  margin-bottom: 10px;
+  transition: background 0.15s ease;
+}
+.assign-add-btn:hover {
+  background: #e6f4ea;
+}
+
+/* قائمة السور المضافة للواجب */
+.assign-queue-list {
+  margin-bottom: 14px;
+}
+.assign-queue-empty {
+  font-size: 0.78rem;
+  color: #9aa8ad;
+  font-style: italic;
+  text-align: center;
+  padding: 6px 0;
+}
+.assign-queue-list > div:not(.assign-queue-empty) {
+  background: #fbfcfc;
+  border: 1px solid #eef2f3;
+  border-radius: 10px !important;
+  margin-bottom: 6px !important;
+}
+
+/* زر الحفظ النهائي */
+.assign-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2a9d5c 0%, var(--secondary-color) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.25);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.assign-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(34, 139, 34, 0.32);
+}
+.assign-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* الموبايل: نخلي الحقول تاخد مساحة أقل ونضبط المسافات */
+@media (max-width: 575.98px) {
+  .assign-card-body {
+    padding: 14px;
+  }
+  .assign-card-header {
+    padding: 13px 14px;
+  }
+  .assign-type-toggle label {
+    padding: 10px 6px;
+    font-size: 0.76rem;
+  }
+  .assign-type-toggle-3 label {
+    padding: 8px 4px;
+    font-size: 0.68rem;
+  }
+  .assign-type-toggle-3 .assign-type-icon {
+    font-size: 1.05rem;
+  }
+}
