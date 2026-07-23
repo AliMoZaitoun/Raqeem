@@ -17,20 +17,18 @@
       href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/raqeem/css/base.css" />
-    <link rel="stylesheet" href="/raqeem/css/lock-screen.css" />
-    <link rel="stylesheet" href="/raqeem/css/layout.css" />
-    <link rel="stylesheet" href="/raqeem/css/tables-tabs.css" />
-    <link rel="stylesheet" href="/raqeem/css/responsive.css" />
-    <link rel="stylesheet" href="/raqeem/css/toast.css" />
-    <link rel="stylesheet" href="/raqeem/css/pending-assignments.css" />
-    <link rel="stylesheet" href="/raqeem/css/assignment-card.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/lock-screen.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/tables-tabs.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+    <link rel="stylesheet" href="css/pending-assignments.css" />
+    <link rel="stylesheet" href="css/assignment-card.css" />
   </head>
   <body>
-    <!-- حاوية التنبيهات العصرية -->
     <div id="appToastContainer"></div>
 
-    <!-- شاشة القفل الآمنة -->
     <div id="lockScreen">
       <div class="pin-box">
         <i class="fas fa-lock fa-4x mb-4 text-warning"></i>
@@ -214,7 +212,6 @@
                     </select>
                   </div>
 
-                  <!-- حقل الطالب القديم الذكي مع ميزة البحث الفوري من الكيبورد -->
                   <div class="mb-3 position-relative">
                     <label class="form-label"
                       >اسم الطالب (ابحث واكتب هنا)</label
@@ -228,15 +225,11 @@
                       required
                       onchange="handleStudentSelect()"
                     />
-                    <datalist id="studentsDatalist">
-                      <!-- يُعبأ برمجياً -->
-                    </datalist>
+                    <datalist id="studentsDatalist"> </datalist>
                     <input type="hidden" id="sessStudentHiddenId" />
                     <input type="hidden" id="sessStudentHiddenName" />
                   </div>
 
-                  <!-- لوحة الواجبات المعلّقة على الطالب المختار: تظهر فوراً عند اختيار الطالب،
-                       وبتسمح للأستاذ يعدّل حالة الواجب من نفس الصفحة بدون ما يروح لملفه الشخصي -->
                   <div id="sessionPendingAssignmentsWrap" class="d-none mb-3">
                     <div
                       class="pending-assign-header"
@@ -256,13 +249,13 @@
                         id="pendingAssignChevron"
                       ></i>
                     </div>
-                    <div id="pendingAssignBody" class="pending-assign-body">
-                      <!-- يُعبأ برمجياً -->
-                    </div>
+                    <div
+                      id="pendingAssignBody"
+                      class="pending-assign-body"
+                    ></div>
                   </div>
 
                   <div class="row">
-                    <!-- حقل السورة القديم الذكي مع ميزة البحث وعدد الآيات -->
                     <div class="col-md-6 mb-3">
                       <label class="form-label">السورة</label>
                       <input
@@ -274,13 +267,10 @@
                         required
                         oninput="onSurahChange()"
                       />
-                      <datalist id="surahDatalist">
-                        <!-- سيتم ملؤها بقائمة السور الـ 114 تلقائياً -->
-                      </datalist>
+                      <datalist id="surahDatalist"> </datalist>
                       <span id="surahInfoLabel" class="surah-hint"></span>
                     </div>
 
-                    <!-- خيار السورة كاملة -->
                     <div
                       class="col-md-6 mb-3 d-flex align-items-center mt-md-4"
                     >
@@ -321,8 +311,6 @@
                     </div>
                   </div>
 
-                  <!-- دعم تسميع أكثر من سورة بنفس الجلسة: يضيف الأستاذ كل سورة للقائمة
-                       ثم يضغط "حفظ التسميع" بالأسفل فترسل كل السور تباعاً بدون أي تحميل صفحة -->
                   <div class="text-end mb-2">
                     <button
                       type="button"
@@ -424,7 +412,6 @@
                         </label>
                       </div>
 
-                      <!-- تذكير بالسور يلي الطالب سمعها قبل، مشان ما نكرر واجب على شي خلص منه -->
                       <div
                         id="assignRecitedHint"
                         class="recited-hint mb-3 d-none"
@@ -526,7 +513,6 @@
           </div>
         </div>
 
-        <!-- 3. تبويب إدارة الطلاب -->
         <div id="studentsTab" class="tab-content d-none">
           <div class="row mb-3">
             <div class="col-md-7 mb-2">
@@ -556,7 +542,6 @@
           <div class="row" id="studentsContainer"></div>
         </div>
 
-        <!-- 4. تبويب السجل التاريخي الكامل -->
         <div id="historyTab" class="tab-content d-none">
           <div class="app-card">
             <div
@@ -601,7 +586,6 @@
       </div>
     </div>
 
-    <!-- مودال إضافة طالب -->
     <div
       class="modal fade"
       id="addStudentModal"
@@ -667,7 +651,6 @@
       </div>
     </div>
 
-    <!-- مودال الملف الشامل للطالب -->
     <div
       class="modal fade"
       id="studentProfileModal"
@@ -705,7 +688,6 @@
               </p>
             </div>
 
-            <!-- التبويبات -->
             <ul
               class="nav nav-tabs nav-fill mb-3"
               id="profileTabs"
@@ -743,9 +725,7 @@
               </li>
             </ul>
 
-            <!-- محتوى التبويبات -->
             <div class="tab-content profile-tab-content" id="profileTabContent">
-              <!-- تبويب 1: سجل التسميع -->
               <div class="tab-pane fade show active" id="tab-history">
                 <div
                   class="table-responsive table-wrapper mobile-cards-table-wrapper border rounded-3"
@@ -769,7 +749,6 @@
                 </div>
               </div>
 
-              <!-- تبويب 2: الواجبات -->
               <div class="tab-pane fade" id="tab-tasks">
                 <div
                   class="table-responsive table-wrapper mobile-cards-table-wrapper border rounded-3 mb-2"
@@ -804,7 +783,6 @@
                   </div>
 
                   <div class="assign-card-body">
-                    <!-- نوع الواجب: تسميع سورة/سور، أو اختبار جزء، أو اختبار سورة كاملة -->
                     <div class="assign-type-toggle assign-type-toggle-3">
                       <input
                         type="radio"
@@ -839,7 +817,6 @@
                       </label>
                     </div>
 
-                    <!-- تذكير بالسور يلي الطالب سمعها قبل -->
                     <div
                       id="profileAssignRecitedHint"
                       class="recited-hint mb-3 d-none"
@@ -932,7 +909,6 @@
                 </div>
               </div>
 
-              <!-- 3. تبويب الملاحظات -->
               <div class="tab-pane fade" id="tab-notes">
                 <form
                   id="generalNoteForm"
@@ -978,19 +954,15 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- ملفات JS مقسّمة حسب الوحدة الوظيفية — يجب الحفاظ على هذا الترتيب -->
-    <!-- core: أساسيات مشتركة، لازم تحمّل أول -->
-    <script src="/raqeem/js/core/config.js"></script>
-    <script src="/raqeem/js/core/ui-helpers.js"></script>
-    <script src="/raqeem/js/core/api.js"></script>
-    <!-- features: كل وحدة وظيفية بمجلدها -->
-    <script src="/raqeem/js/features/auth/auth.js"></script>
-    <script src="/raqeem/js/features/students/students.js"></script>
-    <script src="/raqeem/js/features/sessions/sessions.js"></script>
-    <script src="/raqeem/js/features/history/history.js"></script>
-    <script src="/raqeem/js/features/notes/notes.js"></script>
-    <script src="/raqeem/js/features/assignments/assignments.js"></script>
-    <!-- نقطة انطلاق التطبيق، لازم تحمّل أخيراً -->
-    <script src="/raqeem/js/core/main.js"></script>
+    <script src="js/core/config.js"></script>
+    <script src="js/core/ui-helpers.js"></script>
+    <script src="js/core/api.js"></script>
+    <script src="js/features/auth/auth.js"></script>
+    <script src="js/features/students/students.js"></script>
+    <script src="js/features/sessions/sessions.js"></script>
+    <script src="js/features/history/history.js"></script>
+    <script src="js/features/notes/notes.js"></script>
+    <script src="js/features/assignments/assignments.js"></script>
+    <script src="js/core/main.js"></script>
   </body>
 </html>
