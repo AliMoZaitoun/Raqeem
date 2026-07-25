@@ -1,0 +1,92 @@
+/* ==================================================
+   progress-panel.css — لوحة تقدّم الطالب بحفظ القرآن
+   =================================================== */
+
+.progress-panel-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eef2f3;
+  box-shadow: 0 3px 14px rgba(26, 95, 122, 0.08);
+  padding: 14px 16px;
+}
+
+.progress-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.progress-panel-title {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.progress-panel-pct {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--secondary-color);
+}
+
+.progress-panel-bar {
+  height: 10px;
+  background: #eef2f3;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.progress-panel-bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--accent-color) 0%,
+    var(--secondary-color) 100%
+  );
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.progress-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.progress-stat-item {
+  background: #f8fafb;
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+}
+.progress-stat-value {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--text-dark);
+}
+.progress-stat-max {
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: #9aa8ad;
+}
+.progress-stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #7a8a90;
+  margin-top: 2px;
+}
+.progress-stat-approx {
+  font-weight: 500;
+  color: #b6c0c4;
+  font-size: 0.62rem;
+}
+
+/* الموبايل: نخلي الشبكة صفين بدل صف واحد ضيق كتير */
+@media (max-width: 480px) {
+  .progress-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .progress-stat-value {
+    font-size: 0.95rem;
+  }
+}

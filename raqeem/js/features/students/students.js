@@ -1,3 +1,7 @@
+// ==============================================
+// students.js — إدارة الطلاب (عرض، بحث، حفظ، ملف شامل)
+// ==============================================
+
 function populateStudentsDatalist() {
   const dl = document.getElementById("studentsDatalist");
   dl.innerHTML = "";
@@ -14,6 +18,8 @@ function handleStudentSelect() {
   const hiddenName = document.getElementById("sessStudentHiddenName");
   const prevId = hiddenId.value;
 
+  // إذا تبدّل الطالب فعلياً (مو مجرد إعادة تأكيد نفس الطالب)، بنفصل ربط "ابدأ التسميع"
+  // القديم مشان ما نحدّث حالة واجب لطالب غلط بالغلط
   function clearLinkIfStudentChanged(newId) {
     if (
       String(prevId) !== String(newId || "") &&
@@ -33,6 +39,7 @@ function handleStudentSelect() {
     hiddenName.value = name;
     renderPendingAssignmentsPanel(id);
     renderRecitedSurahsHint("assign", id);
+    checkSurahOverlapWarning("assign");
     return;
   }
 
@@ -47,6 +54,7 @@ function handleStudentSelect() {
     hiddenName.value = student.name;
     renderPendingAssignmentsPanel(student.id);
     renderRecitedSurahsHint("assign", student.id);
+    checkSurahOverlapWarning("assign");
     return;
   }
 
@@ -55,6 +63,7 @@ function handleStudentSelect() {
   hiddenName.value = "";
   renderPendingAssignmentsPanel(null);
   renderRecitedSurahsHint("assign", null);
+  checkSurahOverlapWarning("assign");
 }
 
 function renderStudentsCards(filteredList = null) {
@@ -148,9 +157,11 @@ function viewStudentProfile(studentId) {
     </tr>`;
   });
 
+  renderStudentProgressPanel(studentId);
   renderAssignmentsTable(studentId);
   renderTeacherNotesArchive(studentId);
   renderRecitedSurahsHint("profileAssign", studentId);
+  checkSurahOverlapWarning("profileAssign");
 
   // تعبئة معرّف واسم الطالب فوراً بالحقول المخفية
   // حتى نموذجي "إضافة ملاحظة" و"تحديد واجب" ياخدوا الطالب المفتوح مباشرة

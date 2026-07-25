@@ -1,3 +1,9 @@
+// ==============================================
+// assignments.js — الواجبات (تسميع سور متعددة أو اختبار جزء)
+// ==============================================
+
+// قائمة انتظار السور لكل نموذج إضافة واجب على حدة (النموذج الأول بصفحة "تسميع جديد"،
+// والثاني بتبويب الواجبات بالملف الشخصي)، مفتاحها هو الـ context
 let assignmentQueues = { assign: [], profileAssign: [] };
 
 function renderAssignmentQueue(ctx) {
@@ -7,6 +13,7 @@ function renderAssignmentQueue(ctx) {
     `removeFromAssignmentQueue_${ctx}`,
   );
 }
+// دوال حذف منفصلة بالاسم لكل context (مطلوبة لأن onclick بالـ HTML بستدعي بالاسم مباشرة)
 function removeFromAssignmentQueue_assign(index) {
   assignmentQueues.assign.splice(index, 1);
   renderAssignmentQueue("assign");
@@ -16,6 +23,7 @@ function removeFromAssignmentQueue_profileAssign(index) {
   renderAssignmentQueue("profileAssign");
 }
 
+// إضافة سورة لقائمة انتظار الواجب (وضع "تسميع")، موحّدة لأي نموذج عبر الـ ctx
 function addSurahToAssignmentQueue(ctx) {
   const surah = document.getElementById(`${ctx}Surah`).value.trim();
   const fromVerse = document.getElementById(`${ctx}From`).value.trim();
@@ -36,9 +44,12 @@ function addSurahToAssignmentQueue(ctx) {
   document.getElementById(`${ctx}Surah`).value = "";
   document.getElementById(`${ctx}From`).value = "";
   document.getElementById(`${ctx}To`).value = "";
+  checkSurahOverlapWarning(ctx);
   showToast(`تمت إضافة سورة ${surah} لواجب التسميع`, "success");
 }
 
+// بتعرض تذكير بالسور يلي الطالب سمعها قبل، موحّد لأي نموذج عبر الـ ctx
+// الهدف: ما يكرر الأستاذ واجب على سورة الطالب خلص منها فعلاً
 function renderRecitedSurahsHint(ctx, studentId) {
   const container = document.getElementById(`${ctx}RecitedHint`);
   if (!container) return;
@@ -59,6 +70,7 @@ function renderRecitedSurahsHint(ctx, studentId) {
     return;
   }
 
+  // سور فريدة (بدون تكرار)، مرتبة بحيث آخر سورة تم تسميعها تطلع أول شي
   const seen = new Set();
   const uniqueRecited = [];
   studentSessions.forEach((s) => {
@@ -75,6 +87,8 @@ function renderRecitedSurahsHint(ctx, studentId) {
     )
     .join("");
 
+  // مطوية افتراضياً (بس عنوان + عداد)، مشان لو الطالب متقدم وعنده عشرات السور
+  // ما تاخد اللوحة كل الشاشة — الأستاذ بيفتحها بس إذا حابب يراجع القائمة كاملة
   container.classList.remove("d-none");
   container.innerHTML = `
     <div class="recited-hint-header" onclick="toggleRecitedHint('${ctx}')">
@@ -98,6 +112,77 @@ function toggleRecitedHint(ctx) {
   wrap.classList.toggle("open");
 }
 
+// تبديل عرض وضع "تسميع سورة/سور" مقابل وضع "اختبار جزء"، موحّد لأي نموذج عبر الـ ctx
+// بتفحص لحظياً وإنت عم تحدد سورة/آيات للواجب: هل الطالب أصلاً سمّع هاد المقطع؟
+// وهل أصلاً عليه واجب مفتوح بنفس السورة؟ وبتوريك تحذير واضح إذا في تطابق
+function getStudentIdForCtx(ctx) {
+  if (ctx === "assign") {
+    return document.getElementById("sessStudentHiddenId").value;
+  }
+  return document.getElementById("noteStudentId").value;
+}
+
+function checkSurahOverlapWarning(ctx) {
+  const warningEl = document.getElementById(`${ctx}SurahWarning`);
+  if (!warningEl) return;
+
+  const studentId = getStudentIdForCtx(ctx);
+  const surah = document.getElementById(`${ctx}Surah`).value.trim();
+  const fromRaw = document.getElementById(`${ctx}From`).value;
+  const toRaw = document.getElementById(`${ctx}To`).value;
+
+  if (!studentId || !isValidSurah(surah)) {
+    warningEl.classList.add("d-none");
+    warningEl.innerHTML = "";
+    return;
+  }
+
+  const from = fromRaw ? Number(fromRaw) : 1;
+  const to = toRaw ? Number(toRaw) : quranSurahs[surah];
+
+  const messages = [];
+
+  // 1) هل سبق وسمّع الطالب نفس السورة بمقطع متداخل مع المقطع المطلوب؟
+  const overlappingSessions = (appData.sessions || []).filter(
+    (s) =>
+      Number(s.student_id) === Number(studentId) &&
+      s.surah === surah &&
+      Number(s.from_verse) <= to &&
+      Number(s.to_verse) >= from,
+  );
+  if (overlappingSessions.length > 0) {
+    const ranges = overlappingSessions
+      .map((s) => `${s.from_verse}-${s.to_verse}`)
+      .join("، ");
+    messages.push(
+      `<i class="fas fa-triangle-exclamation"></i> الطالب سمّع هذا المقطع من قبل (الآيات: ${ranges})`,
+    );
+  }
+
+  // 2) هل أصلاً عليه واجب "قيد التحضير" بنفس السورة؟
+  const existingPending = (appData.assignments || []).filter(
+    (a) =>
+      Number(a.student_id) === Number(studentId) &&
+      a.surah === surah &&
+      a.status === "قيد التحضير",
+  );
+  if (existingPending.length > 0) {
+    messages.push(
+      `<i class="fas fa-circle-exclamation"></i> أصلاً عليه واجب مفتوح بنفس السورة`,
+    );
+  }
+
+  if (messages.length === 0) {
+    warningEl.classList.add("d-none");
+    warningEl.innerHTML = "";
+  } else {
+    warningEl.classList.remove("d-none");
+    warningEl.innerHTML = messages
+      .map((m) => `<div class="surah-overlap-line">${m}</div>`)
+      .join("");
+  }
+}
+
 function toggleAssignmentType(ctx) {
   const isTestJuz = document.getElementById(`${ctx}TypeTest`).checked;
   const isTestSurah = document.getElementById(`${ctx}TypeTestSurah`).checked;
@@ -118,6 +203,9 @@ function toggleAssignmentType(ctx) {
   }
 }
 
+// الدالة الموحّدة الوحيدة لحفظ الواجب، تُستدعى من مكانين بنفس الطريقة تماماً
+// btnEl: الزر اللي انضغط (لعرض حالة التحميل عليه)
+// ctx: "assign" (نموذج تسميع جديد) أو "profileAssign" (تبويب الواجبات بالبروفايل)
 async function saveStudentAssignment(btnEl, ctx) {
   let studentId, studentName;
 
@@ -231,6 +319,7 @@ async function saveStudentAssignment(btnEl, ctx) {
         : "تم تسجيل الواجب بنجاح!",
       "success",
     );
+    // تصفير الحقول والقائمة بعد نجاح كامل
     assignmentQueues[ctx] = [];
     renderAssignmentQueue(ctx);
     if (document.getElementById(`${ctx}Surah`))
@@ -243,6 +332,7 @@ async function saveStudentAssignment(btnEl, ctx) {
       document.getElementById(`${ctx}Juz`).value = "";
     if (document.getElementById(`${ctx}TestSurah`))
       document.getElementById(`${ctx}TestSurah`).value = "";
+    checkSurahOverlapWarning(ctx);
   } else {
     showToast(
       `تعذر تسجيل بعض الواجبات (${failedItems.join("، ")})، حاول مجدداً.`,
@@ -293,6 +383,8 @@ function renderAssignmentsTable(currentStudentId) {
   });
 }
 
+// تحديث حالة الواجب
+
 function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
   if (!assignmentId) return;
 
@@ -312,6 +404,7 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
       .forEach((cls) => selectEl.classList.add(cls));
   }
 
+  // تحديث لون النص فوراً بدون انتظار رد السيرفر
   applyColor(newStatus);
   if (selectEl) selectEl.disabled = true;
 
@@ -349,6 +442,12 @@ function updateAssignmentStatus(assignmentId, newStatus, selectEl) {
     });
 }
 
+// ==============================================
+// لوحة "واجبات الطالب" ضمن نموذج التسميع الجديد
+// بتعرض واجبات الطالب فوراً عند اختياره، وبتسمح تعديل حالتها من نفس المكان
+// (نفس دالة updateAssignmentStatus يلي بتستخدمها لوحة الملف الشخصي، ما في تكرار منطق)
+// ==============================================
+
 function togglePendingAssignPanel() {
   const header = document.querySelector(
     "#sessionPendingAssignmentsWrap .pending-assign-header",
@@ -373,6 +472,7 @@ function renderPendingAssignmentsPanel(studentId) {
     return;
   }
 
+  // بنعرض فقط الواجبات يلي حالتها "قيد التحضير" (يعني الطالب لسا ما سمعها)
   const pendingAssignments = appData.assignments.filter(
     (a) =>
       Number(a.student_id) === Number(studentId) && a.status === "قيد التحضير",
@@ -418,6 +518,7 @@ function renderPendingAssignmentsPanel(studentId) {
     })
     .join("");
 
+  // في واجبات قيد التحضير ← بتحتاج انتباه الأستاذ فوراً، فبنفتح اللوحة تلقائياً
   header.classList.add("open");
   body.classList.add("open");
 }

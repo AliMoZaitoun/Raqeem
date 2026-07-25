@@ -199,3 +199,27 @@
     font-size: 1.05rem;
   }
 }
+
+/* تحذير لحظي: الطالب أصلاً سمّع هالمقطع، أو أصلاً عليه واجب مفتوح بنفس السورة */
+.surah-overlap-warning {
+  background: #fff8e6;
+  border: 1.5px solid #f3d98b;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+.surah-overlap-line {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8a6300;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.surah-overlap-line:not(:last-child) {
+  margin-bottom: 4px;
+}
+.surah-overlap-line i {
+  color: #d99b00;
+  flex-shrink: 0;
+}

@@ -28,17 +28,16 @@ async function searchStudentProfile(e) {
   document.getElementById("parentStId").innerText =
     student.student_pin || "مسجل";
 
-  // الملاحظات العامة
+  // renderParentProgressPanel(currentStudentId);
+
   renderGeneralNotes(currentStudentId);
 
-  // الواجبات
   const stAssignments = (globalData.assignments || [])
     .filter((a) => Number(a.student_id) === Number(currentStudentId))
     .sort((a, b) => b.id - a.id);
 
   renderAssignments(stAssignments);
 
-  // الجلسات
   const stSessions = globalData.sessions
     .filter((s) => Number(s.student_id) === Number(currentStudentId))
     .sort((a, b) => b.id - a.id);
@@ -50,7 +49,6 @@ async function searchStudentProfile(e) {
   populateMonthFilter(stSessions);
   renderSessionsTimeline(stSessions);
 
-  // تبديل الشاشات
   document.getElementById("loginSection").classList.add("d-none");
   document.getElementById("profileSection").classList.remove("d-none");
 }
